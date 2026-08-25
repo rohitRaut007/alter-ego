@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStateProvider } from "../lib/app-state";
 import { Toaster } from "../components/ui/sonner";
+import { Loader2 } from "lucide-react";
+
 
 
 function NotFoundComponent() {
@@ -119,17 +121,55 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useAppState } from "../lib/app-state";
+
+function AppContent() {
+  const { user, loading, onboarded } = useAppState();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+
+    const publicRoutes = ["/", "/auth"];
+    const isPublic = publicRoutes.includes(pathname);
+
+    if (!user && !isPublic) {
+      void navigate({ to: "/auth" });
+    } else if (user) {
+      if (pathname === "/auth") {
+        if (!onboarded) {
+          void navigate({ to: "/onboarding" });
+        } else {
+          void navigate({ to: "/dashboard" });
+        }
+      }
+    }
+  }, [user, loading, onboarded, pathname, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  return <Outlet />;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppStateProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <AppContent />
         <Toaster position="top-right" />
       </AppStateProvider>
     </QueryClientProvider>
   );
 }
+
 

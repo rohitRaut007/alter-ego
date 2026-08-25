@@ -31,7 +31,7 @@ export function Hero() {
         style={{ opacity: 0.35 + engagement * 0.35 }}
       />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-5 pb-12 pt-16 sm:px-8 sm:pt-24 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-4">
+      <div className="relative mx-auto -mt-10 grid max-w-6xl items-center gap-8 px-5 pb-12 pt-1 sm:px-8 sm:pt-2 lg:-mt-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-4">
         <div className="relative z-10 text-center lg:text-left">
           <motion.span
             custom={0}
@@ -120,7 +120,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            className="pointer-events-none absolute right-2 top-4 hidden rounded-xl border border-border/70 bg-card/75 px-3.5 py-2.5 text-left shadow-lift backdrop-blur-md lg:block"
+            className="pointer-events-none absolute right-2 top-24 hidden rounded-xl border border-border/70 bg-card/75 px-3.5 py-2.5 text-left shadow-lift backdrop-blur-md lg:block"
             animate={{
               opacity: engagement > 0.25 ? 1 : 0,
               y: engagement > 0.25 ? 0 : 10,

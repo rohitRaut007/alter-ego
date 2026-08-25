@@ -36,7 +36,7 @@ interface Bubble {
 
 function Onboarding() {
   const navigate = useNavigate();
-  const { setOnboardingAnswer, completeOnboarding } = useAppState();
+  const { setOnboardingAnswer, completeOnboarding, onboarded } = useAppState();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -52,6 +52,12 @@ function Onboarding() {
     { id: "q0", role: "mentor", content: onboardingQuestions[0]!.question },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (onboarded) {
+      void navigate({ to: "/dashboard" });
+    }
+  }, [onboarded, navigate]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -85,10 +91,11 @@ function Onboarding() {
     } else {
       setStep(next);
       setGenerating(true);
-      await new Promise((r) => setTimeout(r, 2200));
+      const success = await completeOnboarding();
       setGenerating(false);
-      setDone(true);
-      completeOnboarding();
+      if (success) {
+        void navigate({ to: "/dashboard" });
+      }
     }
   }
 

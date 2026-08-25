@@ -1,5 +1,30 @@
 # Alter Ego OS
 
+alter-ego-os/
+├── public/                 # Static Assets (Images, Icons, Fonts)
+├── src/                    # Main Source Code
+│   ├── assets/             # Images, SVGs, Lottie files, 3D Models
+│   ├── components/         # Reusable UI Components
+│   │   ├── hero/           # Hero Section Specific Files
+│   │   │   ├── Hero.jsx/tsx           # Main Hero Component
+│   │   │   ├── HeroAnimation.jsx/tsx  # Canvas/Animation Logic
+│   │   │   └── Hero.module.css        # Hero Section Styles
+│   │   ├── ui/             # Buttons, Cards, Modals
+│   │   └── os/             # Window, Desktop, Taskbar (if OS theme)
+│   ├── hooks/              # Custom React Hooks (e.g., useAnimation, useMousePosition)
+│   ├── styles/ or App.css  # Global Tailwind / CSS / Animation keyframes
+│   ├── utils/              # Helper functions
+│   ├── App.jsx/tsx         # Main Layout Component
+│   └── main.jsx/tsx        # Entry point
+├── package.json            # Dependencies (Framer Motion, Three.js, GSAP, etc.)
+└── tailwind.config.js      # Custom animations & keyframes config
+
+
+
+supabase:
+Name : Alter Ego
+Password: Alter Ego@7020047992
+
 Build a production-ready frontend for Alter Ego OS, an AI-powered personal transformation platform based on the provided PRD.
 
 Design Direction
@@ -231,3 +256,5 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+

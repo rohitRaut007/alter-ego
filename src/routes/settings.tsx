@@ -13,7 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppState } from "@/lib/app-state";
 import { layers, profile, sprint } from "@/lib/mock-data";
 
+import { supabase } from "@/lib/supabase";
+
 export const Route = createFileRoute("/settings")({
+
   head: () => ({
     meta: [
       { title: "Profile & Settings — Alter Ego OS" },
@@ -185,7 +188,10 @@ function SettingsPage() {
             <Button
               variant="outline"
               className="mt-4 w-full"
-              onClick={() => toast.success("Signed out of this device.")}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                toast.success("Signed out of this device.");
+              }}
             >
               Sign out
             </Button>

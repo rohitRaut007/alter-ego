@@ -48,7 +48,10 @@ function Mentor() {
     setDraft("");
     setPending(true);
     try {
-      await sendMentorMessage(active?.id ?? null, content);
+      const res = await sendMentorMessage(active?.id ?? null, content);
+      if (res && res.conversationId && res.conversationId !== active?.id) {
+        setActiveId(res.conversationId);
+      }
     } catch {
       toast.error("The mentor is unreachable. Your message was saved locally.");
     } finally {
