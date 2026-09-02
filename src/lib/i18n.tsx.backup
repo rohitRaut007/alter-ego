@@ -1,0 +1,960 @@
+import { createContext, useContext, useState, type ReactNode } from "react";
+
+export interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string;
+}
+
+export const SUPPORTED_LANGUAGES: Language[] = [
+  { code: "en-US", name: "English (US)", nativeName: "English (US)", flag: "🇺🇸" },
+  { code: "en-GB", name: "English (UK)", nativeName: "English (UK)", flag: "🇬🇧" },
+  { code: "es", name: "Spanish", nativeName: "Español", flag: "🇪🇸" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳" },
+  { code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪" },
+  { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷" },
+  { code: "zh", name: "Chinese", nativeName: "中文", flag: "🇨🇳" },
+  { code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵" },
+  { code: "pt", name: "Portuguese", nativeName: "Português", flag: "🇵🇹" },
+];
+
+export const DEFAULT_LANGUAGE = "en-US";
+
+type TranslationDict = Record<string, Record<string, string>>;
+
+export const TRANSLATIONS: TranslationDict = {
+  "en-US": {
+    nav_dashboard: "Dashboard",
+    nav_daily_os: "Daily OS",
+    nav_protocol: "Protocol",
+    nav_mentor: "AI Mentor",
+    nav_character: "Character",
+    nav_knowledge: "Knowledge",
+    nav_legacy: "Legacy",
+    nav_settings: "Settings",
+    nav_sign_in: "Sign in",
+    nav_build_alter_ego: "Build My Alter Ego",
+    nav_the_system: "The system",
+    nav_how_it_works: "How it works",
+
+    hero_title: "Become the person you were meant to become.",
+    hero_subtitle:
+      "An AI-powered personal operating system that turns your ambition into a seven-layer protocol, a daily practice and a mentor that holds you to it.",
+    hero_cta: "Build My Alter Ego",
+    hero_secondary_cta: "Explore the system",
+    seven_layers_title: "A person is a system. Most people never design theirs.",
+    seven_layers_subtitle:
+      "Each layer inherits from the one above it. Change your identity architecture and the daily practices follow.",
+    mentor_section_title: "Coaching that already knows your protocol.",
+    how_it_works_title: "From an honest conversation to a running system.",
+
+    greeting_morning: "Good morning",
+    greeting_afternoon: "Good afternoon",
+    greeting_evening: "Good evening",
+    todays_priority: "Today's priority",
+    mark_complete: "Mark complete",
+    completed: "Completed",
+    open_daily_os: "Open Daily OS",
+    morning_brief: "Morning brief",
+    current_sprint: "Current sprint",
+    ask_your_mentor: "Ask your mentor",
+    tasks_today: "Tasks today",
+    practices_done: "Practices done",
+    longest_streak: "Longest streak",
+    reading_progress: "Reading progress",
+    seven_layers: "Seven layers",
+    view_all: "View all",
+
+    interview_title: "The Interview",
+    interview_subtitle:
+      "A ten-minute conversation about your ambition, position, character, fears and horizon.",
+    send_answer: "Send answer",
+    enter_dashboard: "Enter my dashboard",
+
+    always_on: "Always on",
+    mentor_title: "AI Mentor",
+    mentor_subtitle:
+      "It sees every layer, every streak and every missed block. Ask it something precise.",
+    new_conversation: "New conversation",
+    ask_mentor_placeholder: "Ask your mentor…",
+
+    deep_work: "Deep work",
+    start_block: "Start block",
+    pause: "Pause",
+    reset: "Reset",
+    close_the_day: "Close the day",
+    today: "Today",
+
+    character_stack: "Character Stack",
+    traits_subtitle:
+      "Traits are not chosen, they are practised. These are the five you are compounding.",
+
+    knowledge_system: "Knowledge System",
+    reading_list: "Reading list",
+    notes: "Notes",
+    collision_notebook: "Collision notebook",
+
+    legacy_timeline: "Legacy Timeline",
+    milestones_mapped: "Milestones mapped",
+    add_milestone: "Add milestone",
+
+    profile_settings: "Profile & Settings",
+    save_protocol: "Save protocol",
+    sign_out: "Sign out",
+
+    // Auth Page
+    auth_create_workspace: "Create your workspace",
+    auth_sovereignty: "Sovereignty awaits",
+    auth_start_journey: "Start the journey to engineer your personal operating system.",
+    auth_enter_credentials: "Enter your key credentials to access your daily dashboard.",
+    auth_full_name: "Full Name",
+    auth_name_placeholder: "Arjun Mehta",
+    auth_email: "Email address",
+    auth_email_placeholder: "name@domain.com",
+    auth_password: "Password",
+    auth_password_placeholder: "••••••••",
+    auth_begin_onboarding: "Begin onboarding",
+    auth_access_os: "Access OS",
+    auth_have_account: "Already have an account? Sign in",
+    auth_new_user: "New user? Create a profile",
+    auth_success: "Account created successfully!",
+    auth_welcome_back: "Welcome back to your system.",
+
+    // Dashboard Page
+    auth_error: "Email or password is incorrect",
+    dashboard_day_info: "Day",
+    dashboard_of: "of",
+    dashboard_priority_complete: "Priority complete — that's the day won.",
+    dashboard_marked_not_done: "Marked as not done",
+    dashboard_this_week: "This week",
+    dashboard_protocol: "Protocol",
+
+    // Daily OS Page
+    daily_title: "Daily Operating System",
+    daily_description: "Run the protocol one day at a time. Brief, blocks, practices, reflection.",
+    daily_nothing_scheduled: "Nothing scheduled in this block. Protect the space or add one task.",
+    daily_add_task_placeholder: "Add a task to today's protocol",
+    daily_add_btn: "Add",
+    daily_practices: "Practices",
+    daily_character_in_motion: "Character in motion",
+    daily_mark_done: "Mark done",
+    daily_done_today: "Done today",
+    daily_reflection: "End of day reflection",
+    daily_compounded_placeholder: "What compounded today?",
+    daily_leaked_placeholder: "What leaked?",
+    daily_tomorrow_placeholder: "Tomorrow's one thing",
+    daily_close_day: "Close the day",
+    daily_block_complete: "Block complete — 90 minutes logged.",
+    daily_task_added: "Task added to your deep work block.",
+    daily_compounded_required: "Write at least one line on what compounded today.",
+    daily_reflection_saved: "Reflection saved. The mentor will use it in Sunday's review.",
+    daily_recent: "Recent",
+    daily_weekly_review: "Weekly review",
+    daily_schedule_review: "Schedule review",
+    daily_review_scheduled: "Weekly review scheduled for Sunday 18:00.",
+    daily_hour_logged: "h",
+    daily_minutes_logged: "m",
+    daily_logged_this_week: "logged this week · target 20h",
+    daily_streak: "Streak",
+
+    // Knowledge Page
+    knowledge_title: "Knowledge System",
+    knowledge_description: "What you read shapes what you can build. This pipeline is curated against your protocol.",
+    knowledge_reading_list: "Reading list",
+    knowledge_notes: "Notes",
+    knowledge_collision_notebook: "Collision notebook",
+    knowledge_progress_btn: "+10%",
+    knowledge_finish: "Finish",
+    knowledge_no_notes: "No notes yet. Capture one idea per reading session.",
+    knowledge_progress_logged: "Progress logged.",
+    knowledge_collision_help: "Where two ideas from different books crash into each other.",
+    knowledge_collision_title_placeholder: "Title",
+    knowledge_collision_sources_placeholder: "Sources (e.g. Impro × Thinking in Systems)",
+    knowledge_collision_thought_placeholder: "What does the collision produce?",
+    knowledge_save_collision: "Save collision",
+    knowledge_collision_required: "A collision needs a title and a thought.",
+    knowledge_collision_captured: "Collision captured.",
+    knowledge_weekly_recommendation: "Weekly recommendation",
+    knowledge_learning_roadmap: "Learning roadmap",
+
+    // Character Page
+    character_title: "Character Stack",
+    character_description: "Traits are not chosen, they are practised. These are the five you are compounding.",
+    character_streaks: "Streaks",
+    character_take_on: "Take it on",
+    character_challenges: "AI challenges",
+    character_reflection_prompt: "Reflection prompt",
+    character_answer_placeholder: "Write your answer…",
+    character_save_reflection: "Save reflection",
+    character_reflection_saved: "Reflection saved to your character log.",
+    character_nothing_to_save: "Nothing to save yet.",
+
+    // Mentor Page
+    mentor_context_loaded: "Context loaded",
+    mentor_nothing_yet: "Nothing on the table yet.",
+    mentor_ask_help: "Ask about today, your sprint, a trait that's slipping, or what to read next.",
+    mentor_challenges: "Challenges",
+    mentor_history: "History",
+    mentor_accept: "Accept",
+    mentor_challenge_accepted: "Challenge accepted. Added to this week.",
+    mentor_thinking: "Mentor is thinking…",
+
+    // Settings Page
+    settings_account: "Account",
+    settings_personal_protocol: "Personal protocol",
+    settings_name: "Name",
+    settings_alter_ego: "Alter ego",
+    settings_identity_statement: "Identity statement",
+    settings_language_localization: "Language & Localization",
+    settings_interface_language: "Interface Language",
+    settings_language_description: "Select your preferred system language.",
+    settings_privacy_data: "Privacy & data",
+    settings_mentor_nudges: "Mentor nudges",
+    settings_mentor_nudges_desc: "Let the mentor message you when a streak is at risk.",
+    settings_usage_analytics: "Usage analytics",
+    settings_analytics_desc: "Anonymous product analytics to improve the protocol engine.",
+    settings_weekly_digest: "Weekly digest",
+    settings_digest_desc: "A Sunday summary of adherence, streaks and sprint pace.",
+    settings_protocol_updated: "Protocol updated.",
+    settings_enabled: "enabled.",
+    settings_disabled: "disabled.",
+    settings_export_data: "Export my data",
+    settings_data_export_preparing: "Your data export is being prepared.",
+    settings_reset_protocol: "Reset protocol",
+    settings_reset_success: "Protocol reset to a fresh state.",
+    settings_progress: "Progress",
+    settings_calendar: "Calendar",
+    settings_calendar_not_connected: "Not connected. Connect to sync deep work blocks and the weekly review.",
+    settings_calendar_connected: "Connected. Deep work blocks are written to your calendar each morning.",
+    settings_connect_calendar: "Connect calendar",
+    settings_disconnect: "Disconnect",
+    settings_calendar_connected_msg: "Calendar connected.",
+    settings_calendar_disconnected_msg: "Calendar disconnected.",
+    settings_member_since: "Member since",
+
+    // Protocol Page
+    protocol_title: "Seven layers, one coherent person.",
+    protocol_description: "Identity architecture, character stack, knowledge system, mission strategy, daily OS, presence and legacy — your full protocol.",
+    protocol_layers_description: "Each layer inherits from the one above it. Open a layer to see what it's made of.",
+    protocol_main_title: "The protocol",
+    protocol_layers: "The seven layers",
+    protocol_open_layer: "Open this layer",
+    protocol_work_with_mentor: "Work on it with your mentor",
+
+    // Onboarding Page
+    onboarding_interview: "The Interview",
+    onboarding_interview_description: "A ten-minute conversation about your ambition, position, character, fears and horizon. Your seven-layer protocol is generated at the end.",
+    onboarding_enter_dashboard: "Enter my dashboard",
+
+    // Legacy Page
+    legacy_title: "Legacy Timeline",
+    legacy_description: "The arc your daily protocol is calibrated to. Reviewed every quarter.",
+    legacy_schedule_review: "Schedule quarterly review",
+    legacy_milestones_mapped: "Milestones mapped",
+    legacy_completed: "Completed",
+    legacy_average_progress: "Average progress",
+    legacy_no_milestones: "No milestones on this horizon yet. Add the first one below.",
+    legacy_add_milestone: "Add milestone",
+    legacy_reopen: "Reopen",
+    legacy_mark_complete: "Mark complete",
+    legacy_milestone_placeholder: "What must be true?",
+
+    // Home/Index Page
+    home_sign_in: "Sign in",
+    home_build_alter_ego: "Build My Alter Ego",
+    home_start_interview: "Start the interview",
+    home_ai_mentor: "AI mentor",
+    home_talk_mentor: "Talk to the mentor",
+    home_explore_system: "Explore the system",
+    home_how_it_works: "How it works",
+
+    // Error Page
+    error_go_home: "Go home",
+    error_try_again: "Try again",
+  },
+
+  "en-GB": {
+    nav_dashboard: "Dashboard",
+    nav_daily_os: "Daily OS",
+    nav_protocol: "Protocol",
+    nav_mentor: "AI Mentor",
+    nav_character: "Character",
+    nav_knowledge: "Knowledge",
+    nav_legacy: "Legacy",
+    nav_settings: "Settings",
+    nav_sign_in: "Sign in",
+    nav_build_alter_ego: "Build My Alter Ego",
+    nav_the_system: "The system",
+    nav_how_it_works: "How it works",
+
+    hero_title: "Become the person you were meant to become.",
+    hero_subtitle:
+      "An AI-powered personal operating system that turns your ambition into a seven-layer protocol, a daily practice and a mentor that holds you to it.",
+    hero_cta: "Build My Alter Ego",
+    hero_secondary_cta: "Explore the system",
+    seven_layers_title: "A person is a system. Most people never design theirs.",
+    seven_layers_subtitle:
+      "Each layer inherits from the one above it. Change your identity architecture and the daily practices follow.",
+    mentor_section_title: "Coaching that already knows your protocol.",
+    how_it_works_title: "From an honest conversation to a running system.",
+
+    greeting_morning: "Good morning",
+    greeting_afternoon: "Good afternoon",
+    greeting_evening: "Good evening",
+    todays_priority: "Today's priority",
+    mark_complete: "Mark complete",
+    completed: "Completed",
+    open_daily_os: "Open Daily OS",
+    morning_brief: "Morning brief",
+    current_sprint: "Current sprint",
+    ask_your_mentor: "Ask your mentor",
+    tasks_today: "Tasks today",
+    practices_done: "Practices done",
+    longest_streak: "Longest streak",
+    reading_progress: "Reading progress",
+    seven_layers: "Seven layers",
+    view_all: "View all",
+
+    interview_title: "The Interview",
+    interview_subtitle:
+      "A ten-minute conversation about your ambition, position, character, fears and horizon.",
+    send_answer: "Send answer",
+    enter_dashboard: "Enter my dashboard",
+
+    always_on: "Always on",
+    mentor_title: "AI Mentor",
+    mentor_subtitle:
+      "It sees every layer, every streak and every missed block. Ask it something precise.",
+    new_conversation: "New conversation",
+    ask_mentor_placeholder: "Ask your mentor…",
+
+    deep_work: "Deep work",
+    start_block: "Start block",
+    pause: "Pause",
+    reset: "Reset",
+    close_the_day: "Close the day",
+    today: "Today",
+
+    character_stack: "Character Stack",
+    traits_subtitle:
+      "Traits are not chosen, they are practised. These are the five you are compounding.",
+
+    knowledge_system: "Knowledge System",
+    reading_list: "Reading list",
+    notes: "Notes",
+    collision_notebook: "Collision notebook",
+
+    legacy_timeline: "Legacy Timeline",
+    milestones_mapped: "Milestones mapped",
+    add_milestone: "Add milestone",
+
+    profile_settings: "Profile & Settings",
+    save_protocol: "Save protocol",
+    sign_out: "Sign out",
+  },
+
+  es: {
+    nav_dashboard: "Panel",
+    nav_daily_os: "SO Diario",
+    nav_protocol: "Protocolo",
+    nav_mentor: "Mentor IA",
+    nav_character: "Carácter",
+    nav_knowledge: "Conocimiento",
+    nav_legacy: "Legado",
+    nav_settings: "Ajustes",
+    nav_sign_in: "Iniciar sesión",
+    nav_build_alter_ego: "Crear Mi Alter Ego",
+    nav_the_system: "El sistema",
+    nav_how_it_works: "Cómo funciona",
+
+    hero_title: "Conviértete en la persona que estabas destinado a ser.",
+    hero_subtitle:
+      "Un sistema operativo personal impulsado por IA que convierte tu ambición en un protocolo de siete capas, una práctica diaria y un mentor que te exige resultados.",
+    hero_cta: "Crear Mi Alter Ego",
+    hero_secondary_cta: "Explorar el sistema",
+    seven_layers_title: "Una persona es un sistema. La mayoría nunca diseña el suyo.",
+    seven_layers_subtitle:
+      "Cada capa hereda de la anterior. Cambia la arquitectura de tu identidad y las prácticas diarias le seguirán.",
+    mentor_section_title: "Un coaching que ya conoce tu protocolo.",
+    how_it_works_title: "De una conversación honesta a un sistema en marcha.",
+
+    greeting_morning: "Buenos días",
+    greeting_afternoon: "Buenas tardes",
+    greeting_evening: "Buenas noches",
+    todays_priority: "Prioridad de hoy",
+    mark_complete: "Marcar completado",
+    completed: "Completado",
+    open_daily_os: "Abrir SO Diario",
+    morning_brief: "Informe matutino",
+    current_sprint: "Sprint actual",
+    ask_your_mentor: "Pregunta a tu mentor",
+    tasks_today: "Tareas hoy",
+    practices_done: "Prácticas realizadas",
+    longest_streak: "Racha más larga",
+    reading_progress: "Progreso de lectura",
+    seven_layers: "Siete capas",
+    view_all: "Ver todo",
+
+    interview_title: "La Entrevista",
+    interview_subtitle:
+      "Una conversación de diez minutos sobre tu ambición, posición, carácter, miedos y horizonte.",
+    send_answer: "Enviar respuesta",
+    enter_dashboard: "Entrar a mi panel",
+
+    always_on: "Siempre disponible",
+    mentor_title: "Mentor IA",
+    mentor_subtitle: "Observa cada capa, racha y bloque perdido. Hazle una pregunta precisa.",
+    new_conversation: "Nueva conversación",
+    ask_mentor_placeholder: "Pregunta a tu mentor…",
+
+    deep_work: "Trabajo profundo",
+    start_block: "Iniciar bloque",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    close_the_day: "Cerrar el día",
+    today: "Hoy",
+
+    character_stack: "Pila de Carácter",
+    traits_subtitle:
+      "Los rasgos no se eligen, se practican. Estos son los cinco que estás cultivando.",
+
+    knowledge_system: "Sistema de Conocimiento",
+    reading_list: "Lista de lectura",
+    notes: "Notas",
+    collision_notebook: "Cuaderno de colisión",
+
+    legacy_timeline: "Línea de Tiempo de Legado",
+    milestones_mapped: "Hitos mapeados",
+    add_milestone: "Añadir hito",
+
+    profile_settings: "Perfil y Ajustes",
+    save_protocol: "Guardar protocolo",
+    sign_out: "Cerrar sesión",
+  },
+
+  hi: {
+    nav_dashboard: "डैशबोर्ड",
+    nav_daily_os: "दैनिक ओएस",
+    nav_protocol: "प्रोटोकॉल",
+    nav_mentor: "एआई मेंटर",
+    nav_character: "व्यक्तित्व",
+    nav_knowledge: "ज्ञान प्रणाली",
+    nav_legacy: "विरासत",
+    nav_settings: "सेटिंग्स",
+    nav_sign_in: "साइन इन करें",
+    nav_build_alter_ego: "मेरा अल्टर ईगो बनाएं",
+    nav_the_system: "सिस्टम",
+    nav_how_it_works: "यह कैसे काम करता है",
+
+    hero_title: "वह व्यक्ति बनें जो आप बनने के लिए बने थे।",
+    hero_subtitle:
+      "एक एआई-संचालित व्यक्तिगत ऑपरेटिंग सिस्टम जो आपकी महत्वाकांक्षा को सात-स्तरीय प्रोटोकॉल, एक दैनिक अभ्यास और एक मेंटर में बदल देता है जो आपको जवाबदेह रखता है।",
+    hero_cta: "मेरा अल्टर ईगो बनाएं",
+    hero_secondary_cta: "सिस्टम एक्सप्लोर करें",
+    seven_layers_title: "एक व्यक्ति एक सिस्टम है। अधिकांश लोग अपना सिस्टम कभी डिज़ाइन नहीं करते।",
+    seven_layers_subtitle:
+      "प्रत्येक परत अपने ऊपर वाली परत से विरासत में मिलती है। अपनी पहचान वास्तुकला बदलें और दैनिक अभ्यास अपने आप अनुसरण करेंगे।",
+    mentor_section_title: "कोचिंग जो आपके प्रोटोकॉल को पहले से जानती है।",
+    how_it_works_title: "एक ईमानदार बातचीत से एक चलते हुए सिस्टम तक।",
+
+    greeting_morning: "सुप्रभात",
+    greeting_afternoon: "नमस्कार",
+    greeting_evening: "शुभ संध्या",
+    todays_priority: "आज की प्राथमिकता",
+    mark_complete: "पूर्ण चिह्नित करें",
+    completed: "पूरा हुआ",
+    open_daily_os: "दैनिक ओएस खोलें",
+    morning_brief: "सुबह का संक्षिप्त विवरण",
+    current_sprint: "वर्तमान स्प्रिंट",
+    ask_your_mentor: "अपने मेंटर से पूछें",
+    tasks_today: "आज के कार्य",
+    practices_done: "अभ्यास पूरे हुए",
+    longest_streak: "सबसे लंबी लकीर",
+    reading_progress: "पढ़ने की प्रगति",
+    seven_layers: "सात परतें",
+    view_all: "सभी देखें",
+
+    interview_title: "साक्षात्कार",
+    interview_subtitle: "आपकी महत्वाकांक्षा, स्थिति, चरित्र, भय और क्षितिज पर दस मिनट की बातचीत।",
+    send_answer: "उत्तर भेजें",
+    enter_dashboard: "मेरे डैशबोर्ड में प्रवेश करें",
+
+    always_on: "हमेशा सक्रिय",
+    mentor_title: "एआई मेंटर",
+    mentor_subtitle: "यह हर परत, लकीर और छूटे हुए ब्लॉक को देखता है। इससे एक सटीक प्रश्न पूछें।",
+    new_conversation: "नई बातचीत",
+    ask_mentor_placeholder: "अपने मेंटर से पूछें…",
+
+    deep_work: "गहन कार्य",
+    start_block: "ब्लॉक शुरू करें",
+    pause: "रोकें",
+    reset: "रीसेट करें",
+    close_the_day: "दिन समाप्त करें",
+    today: "आज",
+
+    character_stack: "चरित्र स्टैक",
+    traits_subtitle:
+      "गुण चुने नहीं जाते, उनका अभ्यास किया जाता है। ये वे पाँच गुण हैं जिन्हें आप संचित कर रहे हैं।",
+
+    knowledge_system: "ज्ञान प्रणाली",
+    reading_list: "पढ़ने की सूची",
+    notes: "नोट्स",
+    collision_notebook: "टकराव नोटबुक",
+
+    legacy_timeline: "विरासत समयरेखा",
+    milestones_mapped: "मैप किए गए मील के पत्थर",
+    add_milestone: "मील का पत्थर जोड़ें",
+
+    profile_settings: "प्रोफ़ाइल और सेटिंग्स",
+    save_protocol: "प्रोटोकॉल सहेजें",
+    sign_out: "साइन आउट करें",
+  },
+
+  de: {
+    nav_dashboard: "Dashboard",
+    nav_daily_os: "Tägliches OS",
+    nav_protocol: "Protokoll",
+    nav_mentor: "KI-Mentor",
+    nav_character: "Charakter",
+    nav_knowledge: "Wissen",
+    nav_legacy: "Vermächtnis",
+    nav_settings: "Einstellungen",
+    nav_sign_in: "Anmelden",
+    nav_build_alter_ego: "Mein Alter Ego erstellen",
+    nav_the_system: "Das System",
+    nav_how_it_works: "Wie es funktioniert",
+
+    hero_title: "Werde die Person, die du werden solltest.",
+    hero_subtitle:
+      "Ein KI-gestütztes persönliches Betriebssystem, das deine Ambitionen in ein Sieben-Schichten-Protokoll, eine tägliche Praxis und einen Mentor verwandelt.",
+    hero_cta: "Mein Alter Ego erstellen",
+    hero_secondary_cta: "System erkunden",
+    seven_layers_title: "Ein Mensch ist ein System. Die meisten entwerfen ihres nie.",
+    seven_layers_subtitle:
+      "Jede Schicht erbt von der darüber liegenden. Ändere deine Identitätsarchitektur und die täglichen Praktiken folgen.",
+    mentor_section_title: "Coaching, das dein Protokoll bereits kennt.",
+    how_it_works_title: "Von einem ehrlichen Gespräch zu einem laufenden System.",
+
+    greeting_morning: "Guten Morgen",
+    greeting_afternoon: "Guten Tag",
+    greeting_evening: "Guten Abend",
+    todays_priority: "Heutige Priorität",
+    mark_complete: "Als erledigt markieren",
+    completed: "Erledigt",
+    open_daily_os: "Tägliches OS öffnen",
+    morning_brief: "Morgenbriefing",
+    current_sprint: "Aktueller Sprint",
+    ask_your_mentor: "Frage deinen Mentor",
+    tasks_today: "Aufgaben heute",
+    practices_done: "Praktiken erledigt",
+    longest_streak: "Längste Serie",
+    reading_progress: "Lesefortschritt",
+    seven_layers: "Sieben Schichten",
+    view_all: "Alle anzeigen",
+
+    interview_title: "Das Interview",
+    interview_subtitle:
+      "Ein zehnminütiges Gespräch über deine Ambitionen, Position, Charakter, Ängste und Horizonte.",
+    send_answer: "Antwort senden",
+    enter_dashboard: "Mein Dashboard öffnen",
+
+    always_on: "Immer aktiv",
+    mentor_title: "KI-Mentor",
+    mentor_subtitle:
+      "Er sieht jede Schicht, jede Serie und jeden verpassten Block. Stelle eine präzise Frage.",
+    new_conversation: "Neues Gespräch",
+    ask_mentor_placeholder: "Frage deinen Mentor…",
+
+    deep_work: "Fokusarbeit",
+    start_block: "Block starten",
+    pause: "Pause",
+    reset: "Zurücksetzen",
+    close_the_day: "Tag abschließen",
+    today: "Heute",
+
+    character_stack: "Charakter-Stack",
+    traits_subtitle:
+      "Eigenschaften werden nicht gewählt, sie werden praktiziert. Das sind die fünf, die du vertiefst.",
+
+    knowledge_system: "Wissenssystem",
+    reading_list: "Leseliste",
+    notes: "Notizen",
+    collision_notebook: "Kollisionsnotizbuch",
+
+    legacy_timeline: "Vermächtnis-Zeitstrahl",
+    milestones_mapped: "Erfasste Meilensteine",
+    add_milestone: "Meilenstein hinzufügen",
+
+    profile_settings: "Profil & Einstellungen",
+    save_protocol: "Protokoll speichern",
+    sign_out: "Abmelden",
+  },
+
+  fr: {
+    nav_dashboard: "Tableau de bord",
+    nav_daily_os: "OS Quotidien",
+    nav_protocol: "Protocole",
+    nav_mentor: "Mentor IA",
+    nav_character: "Caractère",
+    nav_knowledge: "Connaissances",
+    nav_legacy: "Héritage",
+    nav_settings: "Paramètres",
+    nav_sign_in: "Se connecter",
+    nav_build_alter_ego: "Créer Mon Alter Ego",
+    nav_the_system: "Le système",
+    nav_how_it_works: "Comment ça marche",
+
+    hero_title: "Devenez la personne que vous étiez destiné à être.",
+    hero_subtitle:
+      "Un système d'exploitation personnel propulsé par l'IA qui transforme votre ambition en un protocole à sept couches, une pratique quotidienne et un mentor dévoué.",
+    hero_cta: "Créer Mon Alter Ego",
+    hero_secondary_cta: "Explorer le système",
+    seven_layers_title: "Une personne est un système. La plupart ne conçoivent jamais le leur.",
+    seven_layers_subtitle:
+      "Chaque couche hérite de la précédente. Changez l'architecture de votre identité et les pratiques quotidiennes suivront.",
+    mentor_section_title: "Un coaching qui connaît déjà votre protocole.",
+    how_it_works_title: "D'une conversation sincère à un système en marche.",
+
+    greeting_morning: "Bonjour",
+    greeting_afternoon: "Bon après-midi",
+    greeting_evening: "Bonsoir",
+    todays_priority: "Priorité du jour",
+    mark_complete: "Marquer comme terminé",
+    completed: "Terminé",
+    open_daily_os: "Ouvrir l'OS Quotidien",
+    morning_brief: "Briefing matinal",
+    current_sprint: "Sprint actuel",
+    ask_your_mentor: "Demander à votre mentor",
+    tasks_today: "Tâches aujourd'hui",
+    practices_done: "Pratiques réalisées",
+    longest_streak: "Plus longue série",
+    reading_progress: "Progression de lecture",
+    seven_layers: "Sept couches",
+    view_all: "Voir tout",
+
+    interview_title: "L'Interview",
+    interview_subtitle:
+      "Une conversation de dix minutes sur votre ambition, situation, caractère, peurs et horizon.",
+    send_answer: "Envoyer la réponse",
+    enter_dashboard: "Accéder à mon tableau de bord",
+
+    always_on: "Toujours disponible",
+    mentor_title: "Mentor IA",
+    mentor_subtitle:
+      "Il observe chaque couche, série et bloc manqué. Posez-lui une question précise.",
+    new_conversation: "Nouvelle conversation",
+    ask_mentor_placeholder: "Posez votre question…",
+
+    deep_work: "Travail profond",
+    start_block: "Démarrer le bloc",
+    pause: "Pause",
+    reset: "Réinitialiser",
+    close_the_day: "Conclure la journée",
+    today: "Aujourd'hui",
+
+    character_stack: "Pile de Caractère",
+    traits_subtitle:
+      "Les traits ne se choisissent pas, ils se pratiquent. Voici les cinq que vous cultivez.",
+
+    knowledge_system: "Système de Connaissances",
+    reading_list: "Liste de lecture",
+    notes: "Notes",
+    collision_notebook: "Carnet de collision",
+
+    legacy_timeline: "Chronologie de l'Héritage",
+    milestones_mapped: "Jalons répertoriés",
+    add_milestone: "Ajouter un jalon",
+
+    profile_settings: "Profil & Paramètres",
+    save_protocol: "Enregistrer le protocole",
+    sign_out: "Déconnexion",
+  },
+
+  zh: {
+    nav_dashboard: "仪表盘",
+    nav_daily_os: "每日系统",
+    nav_protocol: "核心协议",
+    nav_mentor: "AI 导师",
+    nav_character: "品格塑造",
+    nav_knowledge: "知识体系",
+    nav_legacy: "终极蓝图",
+    nav_settings: "个人设置",
+    nav_sign_in: "登录账号",
+    nav_build_alter_ego: "构建我的第二自我",
+    nav_the_system: "系统架构",
+    nav_how_it_works: "运行机制",
+
+    hero_title: "成为你注定要成为的那个人。",
+    hero_subtitle:
+      "由 AI 驱动的个人操作系统，将你的雄心壮志转化为七层架构协议、每日执行习惯以及精准督导的 AI 导师。",
+    hero_cta: "构建我的第二自我",
+    hero_secondary_cta: "探索操作系统",
+    seven_layers_title: "人即系统。大多数人却从未设计过属于自己的系统。",
+    seven_layers_subtitle: "每一层都承接自上一层。重塑你的身份架构，每日践行自然顺理成章。",
+    mentor_section_title: "完全掌握你专属协议的 AI 导师。",
+    how_it_works_title: "从一次坦诚对话到高效运转的系统。",
+
+    greeting_morning: "早上好",
+    greeting_afternoon: "下午好",
+    greeting_evening: "晚上好",
+    todays_priority: "今日核心任务",
+    mark_complete: "标记为完成",
+    completed: "已完成",
+    open_daily_os: "打开每日系统",
+    morning_brief: "晨间简报",
+    current_sprint: "当前 90 天冲刺",
+    ask_your_mentor: "咨询 AI 导师",
+    tasks_today: "今日任务",
+    practices_done: "完成习惯",
+    longest_streak: "最长连续天数",
+    reading_progress: "阅读进度",
+    seven_layers: "七层架构",
+    view_all: "查看全部",
+
+    interview_title: "深度对话",
+    interview_subtitle: "10 分钟关于抱负、现状、性格、恐惧与远景的坦诚交流。",
+    send_answer: "发送回答",
+    enter_dashboard: "进入仪表盘",
+
+    always_on: "实时在线",
+    mentor_title: "AI 导师",
+    mentor_subtitle: "洞悉每一层架构、连续天数与遗漏任务。随时提问。",
+    new_conversation: "开启新对话",
+    ask_mentor_placeholder: "向你的 AI 导师提问…",
+
+    deep_work: "深度专注",
+    start_block: "开始专注块",
+    pause: "暂停",
+    reset: "重置",
+    close_the_day: "复盘今日",
+    today: "今天",
+
+    character_stack: "品格矩阵",
+    traits_subtitle: "品格非选择而成，而是日复一日练习所得。",
+
+    knowledge_system: "知识体系",
+    reading_list: "阅读清单",
+    notes: "读书笔记",
+    collision_notebook: "思想碰撞本",
+
+    legacy_timeline: "终极蓝图",
+    milestones_mapped: "里程碑节点",
+    add_milestone: "添加里程碑",
+
+    profile_settings: "个人资料与设置",
+    save_protocol: "保存协议",
+    sign_out: "退出登录",
+  },
+
+  ja: {
+    nav_dashboard: "ダッシュボード",
+    nav_daily_os: "デイリーOS",
+    nav_protocol: "プロトコル",
+    nav_mentor: "AIメンター",
+    nav_character: "キャラクター",
+    nav_knowledge: "ナレッジ",
+    nav_legacy: "レガシー",
+    nav_settings: "設定",
+    nav_sign_in: "サインイン",
+    nav_build_alter_ego: "アルターエゴを構築",
+    nav_the_system: "システム概要",
+    nav_how_it_works: "仕組み",
+
+    hero_title: "あなたがなるべき自分になろう。",
+    hero_subtitle:
+      "野望を7層のプロトコル、日々の実践、息づくAIメンターへと変換するAIパーソナルOS。",
+    hero_cta: "アルターエゴを構築",
+    hero_secondary_cta: "システムを見る",
+    seven_layers_title: "人間はシステムである。多くの人はそれを設計しない。",
+    seven_layers_subtitle:
+      "すべての層は上の層を継承する。アイデンティティの構造を変えれば、日々の行動は自然と従う。",
+    mentor_section_title: "あなたのプロトコルを熟知したコーチング。",
+    how_it_works_title: "率直な対話から、稼働するシステムへ。",
+
+    greeting_morning: "おはようございます",
+    greeting_afternoon: "こんにちは",
+    greeting_evening: "こんばんは",
+    todays_priority: "今日の最優先事項",
+    mark_complete: "完了とする",
+    completed: "完了",
+    open_daily_os: "デイリーOSを開く",
+    morning_brief: "モーニングブリーフ",
+    current_sprint: "現在のスプリント",
+    ask_your_mentor: "メンターに相談",
+    tasks_today: "本日のタスク",
+    practices_done: "実践済み習慣",
+    longest_streak: "最長ストリーク",
+    reading_progress: "読書進捗",
+    seven_layers: "7つのレイヤー",
+    view_all: "すべて見る",
+
+    interview_title: "インタビュー",
+    interview_subtitle: "野望、現状、性格、恐れ、展望についての10分間の対話。",
+    send_answer: "回答を送信",
+    enter_dashboard: "ダッシュボードへ",
+
+    always_on: "常時稼働",
+    mentor_title: "AIメンター",
+    mentor_subtitle: "すべてのレイヤーと進捗を監視。具体的な質問をしてください。",
+    new_conversation: "新しい会話",
+    ask_mentor_placeholder: "メンターに質問する…",
+
+    deep_work: "ディープワーク",
+    start_block: "ブロック開始",
+    pause: "一時停止",
+    reset: "リセット",
+    close_the_day: "1日を締めくくる",
+    today: "今日",
+
+    character_stack: "キャラクターの積み上げ",
+    traits_subtitle: "資質は選ぶものではなく、実践するもの。",
+
+    knowledge_system: "ナレッジシステム",
+    reading_list: "読書リスト",
+    notes: "ノート",
+    collision_notebook: "衝突ノート",
+
+    legacy_timeline: "レガシータイムライン",
+    milestones_mapped: "マイルストーン",
+    add_milestone: "マイルストーン追加",
+
+    profile_settings: "プロフィール設定",
+    save_protocol: "プロトコル保存",
+    sign_out: "サインアウト",
+  },
+
+  pt: {
+    nav_dashboard: "Painel",
+    nav_daily_os: "OS Diário",
+    nav_protocol: "Protocolo",
+    nav_mentor: "Mentor IA",
+    nav_character: "Caráter",
+    nav_knowledge: "Conhecimento",
+    nav_legacy: "Legado",
+    nav_settings: "Configurações",
+    nav_sign_in: "Entrar",
+    nav_build_alter_ego: "Criar Meu Alter Ego",
+    nav_the_system: "O sistema",
+    nav_how_it_works: "Como funciona",
+
+    hero_title: "Torne-se a pessoa que você nasceu para ser.",
+    hero_subtitle:
+      "Um sistema operacional pessoal com IA que transforma sua ambição em um protocolo de sete camadas, uma prática diária e um mentor dedicado.",
+    hero_cta: "Criar Meu Alter Ego",
+    hero_secondary_cta: "Explorar o sistema",
+    seven_layers_title: "Uma pessoa é um sistema. A maioria nunca projeta o seu.",
+    seven_layers_subtitle:
+      "Cada camada herda da anterior. Mude sua arquitetura de identidade e as práticas diárias seguirão.",
+    mentor_section_title: "Mentoria que já conhece seu protocolo.",
+    how_it_works_title: "De uma conversa honesta a um sistema em execução.",
+
+    greeting_morning: "Bom dia",
+    greeting_afternoon: "Boa tarde",
+    greeting_evening: "Boa noite",
+    todays_priority: "Prioridade de hoje",
+    mark_complete: "Marcar como concluído",
+    completed: "Concluído",
+    open_daily_os: "Abrir OS Diário",
+    morning_brief: "Briefing matinal",
+    current_sprint: "Sprint atual",
+    ask_your_mentor: "Pergunte ao seu mentor",
+    tasks_today: "Tarefas hoje",
+    practices_done: "Práticas concluídas",
+    longest_streak: "Maior sequência",
+    reading_progress: "Progresso de leitura",
+    seven_layers: "Sete camadas",
+    view_all: "Ver tudo",
+
+    interview_title: "A Entrevista",
+    interview_subtitle:
+      "Uma conversa de dez minutos sobre sua ambição, posição, caráter, medos e horizonte.",
+    send_answer: "Enviar resposta",
+    enter_dashboard: "Entrar no meu painel",
+
+    always_on: "Sempre ativo",
+    mentor_title: "Mentor IA",
+    mentor_subtitle: "Ele vê cada camada, sequência e bloco perdido. Faça uma pergunta precisa.",
+    new_conversation: "Nova conversa",
+    ask_mentor_placeholder: "Pergunte ao seu mentor…",
+
+    deep_work: "Trabalho profundo",
+    start_block: "Iniciar bloco",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    close_the_day: "Encerrar o dia",
+    today: "Hoje",
+
+    character_stack: "Pilha de Caráter",
+    traits_subtitle:
+      "Traços não são escolhidos, são praticados. Estes são os cinco que você está aprimorando.",
+
+    knowledge_system: "Sistema de Conhecimento",
+    reading_list: "Lista de leitura",
+    notes: "Notas",
+    collision_notebook: "Caderno de colisão",
+
+    legacy_timeline: "Linha do Tempo do Legado",
+    milestones_mapped: "Marcos mapeados",
+    add_milestone: "Adicionar marco",
+
+    profile_settings: "Perfil e Configurações",
+    save_protocol: "Salvar protocolo",
+    sign_out: "Sair",
+  },
+};
+
+interface LanguageContextType {
+  language: string;
+  setLanguage: (lang: string) => void;
+  t: (key: string, fallback?: string) => string;
+  currentLanguageSpec: Language;
+}
+
+const LanguageContext = createContext<LanguageContextType | null>(null);
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguageState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("alter_ego_lang");
+      if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
+        return saved;
+      }
+    }
+    return DEFAULT_LANGUAGE;
+  });
+
+  const setLanguage = (lang: string) => {
+    if (SUPPORTED_LANGUAGES.some((l) => l.code === lang)) {
+      setLanguageState(lang);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("alter_ego_lang", lang);
+      }
+    }
+  };
+
+  const t = (key: string, fallback?: string): string => {
+    const dict = TRANSLATIONS[language] || TRANSLATIONS[DEFAULT_LANGUAGE] || {};
+    if (dict[key]) return dict[key]!;
+    const defaultDict = TRANSLATIONS[DEFAULT_LANGUAGE] || {};
+    if (defaultDict[key]) return defaultDict[key]!;
+    return fallback || key;
+  };
+
+  const currentLanguageSpec =
+    SUPPORTED_LANGUAGES.find((l) => l.code === language) || SUPPORTED_LANGUAGES[0]!;
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t, currentLanguageSpec }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) {
+    throw new Error("useLanguage must be used within a LanguageProvider");
+  }
+  return ctx;
+}

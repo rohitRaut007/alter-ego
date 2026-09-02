@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppState } from "@/lib/app-state";
 import { morningBrief, sprint } from "@/lib/mock-data";
+import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/daily")({
@@ -33,13 +34,14 @@ export const Route = createFileRoute("/daily")({
 });
 
 const blocks = [
-  { id: "morning", label: "Morning" },
-  { id: "deep-work", label: "Deep work" },
-  { id: "evening", label: "Evening" },
+  { id: "morning", labelKey: "daily_block_morning" },
+  { id: "deep-work", labelKey: "deep_work" },
+  { id: "evening", labelKey: "daily_block_evening" },
 ] as const;
 
 function DeepWorkTimer() {
   const { addDeepWorkMinutes, deepWorkMinutes } = useAppState();
+  const { t } = useLanguage();
   const [seconds, setSeconds] = useState(90 * 60);
   const [running, setRunning] = useState(false);
   const ref = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -51,7 +53,7 @@ function DeepWorkTimer() {
           if (s <= 1) {
             setRunning(false);
             addDeepWorkMinutes(90);
-            toast.success("Block complete — 90 minutes logged.");
+            toast.success(t("daily_block_complete", "Block complete — 90 minutes logged."));
             return 0;
           }
           return s - 1;
@@ -69,7 +71,7 @@ function DeepWorkTimer() {
 
   return (
     <section className="card-surface p-6">
-      <p className="label-eyebrow">Deep work</p>
+      <p className="label-eyebrow">{t("deep_work", "Deep work")}</p>
       <p className="mt-4 font-mono text-5xl tabular-nums tracking-tight">
         {mm}:{ss}
       </p>
@@ -77,12 +79,12 @@ function DeepWorkTimer() {
       <div className="mt-5 flex gap-2">
         <Button onClick={() => setRunning((r) => !r)} className="flex-1">
           {running ? <Pause className="size-4" /> : <Play className="size-4" />}
-          {running ? "Pause" : "Start block"}
+          {running ? t("pause", "Pause") : t("daily_timer_start", "Start block")}
         </Button>
         <Button
           variant="outline"
           size="icon"
-          aria-label="Reset timer"
+          aria-label={t("daily_timer_reset_label", "Reset timer")}
           onClick={() => {
             setRunning(false);
             setSeconds(90 * 60);
@@ -92,7 +94,7 @@ function DeepWorkTimer() {
         </Button>
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
-        {Math.floor(deepWorkMinutes / 60)}h {deepWorkMinutes % 60}m logged this week · target 20h
+        {Math.floor(deepWorkMinutes / 60)}{t("daily_hour_logged", "h")} {deepWorkMinutes % 60}{t("daily_minutes_logged", "m")} {t("daily_logged_this_week_timer", "logged this week · target 20h")}
       </p>
     </section>
   );
@@ -101,6 +103,7 @@ function DeepWorkTimer() {
 function DailyOS() {
   const { tasks, habits, toggleTask, toggleHabit, addTask, saveReflection, reflections } =
     useAppState();
+  const { t } = useLanguage();
   const [newTask, setNewTask] = useState("");
   const [form, setForm] = useState({ compounded: "", leaked: "", tomorrow: "" });
   const [saving, setSaving] = useState(false);
@@ -108,7 +111,7 @@ function DailyOS() {
 
   async function submitReflection() {
     if (!form.compounded.trim()) {
-      toast.error("Write at least one line on what compounded today.");
+      toast.error(t("daily_compounded_error", "Write at least one line on what compounded today."));
       return;
     }
     setSaving(true);
@@ -116,15 +119,15 @@ function DailyOS() {
     saveReflection({ ...form, rating: 4 });
     setForm({ compounded: "", leaked: "", tomorrow: "" });
     setSaving(false);
-    toast.success("Reflection saved. The mentor will use it in Sunday's review.");
+    toast.success(t("daily_reflection_saved", "Reflection saved. The mentor will use it in Sunday's review."));
   }
 
   return (
     <AppShell>
       <PageHeader
-        eyebrow={`Day ${sprint.day} of ${sprint.total}`}
-        title="Daily Operating System"
-        description="Run the protocol one day at a time. Brief, blocks, practices, reflection."
+        eyebrow={`${t("dashboard_day_info", "Day")} ${sprint.day} ${t("dashboard_of", "of")} ${sprint.total}`}
+        title={t("daily_title", "Daily Operating System")}
+        description={t("daily_description", "Run the protocol one day at a time. Brief, blocks, practices, reflection.")}
       />
 
       <div className="card-surface rise-in mb-5 flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
@@ -132,9 +135,9 @@ function DailyOS() {
           <Sunrise className="size-5" />
         </span>
         <div>
-          <p className="label-eyebrow">Morning brief</p>
-          <p className="mt-1.5 font-display text-xl leading-snug">{morningBrief.headline}</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{morningBrief.body}</p>
+          <p className="label-eyebrow">{t("morning_brief", "Morning brief")}</p>
+          <p className="mt-1.5 font-display text-xl leading-snug">{t("brief_headline", morningBrief.headline)}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("brief_body", morningBrief.body)}</p>
         </div>
       </div>
 
@@ -143,9 +146,9 @@ function DailyOS() {
           <section className="card-surface p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="label-eyebrow">Today</p>
+                <p className="label-eyebrow">{t("today", "Today")}</p>
                 <h2 className="mt-1 text-xl">
-                  {done} of {tasks.length} complete
+                  {done} {t("daily_of_complete", "of ... complete").replace("...", tasks.length.toString())}
                 </h2>
               </div>
               <Progress value={(done / tasks.length) * 100} className="h-1.5 w-28" />
@@ -155,7 +158,7 @@ function DailyOS() {
               <TabsList>
                 {blocks.map((b) => (
                   <TabsTrigger key={b.id} value={b.id}>
-                    {b.label}
+                    {t(b.labelKey, b.labelKey)}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -165,43 +168,43 @@ function DailyOS() {
                   <TabsContent key={b.id} value={b.id} className="mt-4 space-y-2">
                     {list.length === 0 && (
                       <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-                        Nothing scheduled in this block. Protect the space or add one task.
+                        {t("daily_nothing_scheduled", "Nothing scheduled in this block. Protect the space or add one task.")}
                       </div>
                     )}
-                    {list.map((t) => (
+                    {list.map((taskItem) => (
                       <button
-                        key={t.id}
-                        onClick={() => toggleTask(t.id)}
+                        key={taskItem.id}
+                        onClick={() => toggleTask(taskItem.id)}
                         className={cn(
                           "flex w-full items-start gap-3 rounded-xl border border-border p-4 text-left transition-all duration-200 hover:border-border-strong hover:shadow-soft",
-                          t.done ? "bg-surface opacity-70" : "bg-card",
+                          taskItem.done ? "bg-surface opacity-70" : "bg-card",
                         )}
                       >
                         <span
                           className={cn(
                             "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors",
-                            t.done
+                            taskItem.done
                               ? "border-success bg-success text-success-foreground"
                               : "border-border-strong",
                           )}
                         >
-                          {t.done && <Check className="size-3" />}
+                          {taskItem.done && <Check className="size-3" />}
                         </span>
                         <span className="flex-1">
                           <span
                             className={cn(
                               "block text-sm font-medium",
-                              t.done && "line-through decoration-muted-foreground",
+                              taskItem.done && "line-through decoration-muted-foreground",
                             )}
                           >
-                            {t.title}
+                            {t(`task_${taskItem.id}_title`, taskItem.title)}
                           </span>
                           <span className="mt-0.5 block text-xs text-muted-foreground">
-                            {t.detail}
+                            {t(`task_${taskItem.id}_detail`, taskItem.detail)}
                           </span>
                         </span>
                         <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                          {t.minutes}m
+                          {taskItem.minutes}m
                         </span>
                       </button>
                     ))}
@@ -217,16 +220,16 @@ function DailyOS() {
                 if (!newTask.trim()) return;
                 addTask(newTask.trim(), 30);
                 setNewTask("");
-                toast.success("Task added to your deep work block.");
+                toast.success(t("daily_task_added", "Task added to your deep work block."));
               }}
             >
               <Input
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
-                placeholder="Add a task to today's protocol"
+                placeholder={t("daily_add_task_placeholder", "Add a task to today's protocol")}
               />
               <Button type="submit" variant="outline">
-                Add
+                {t("daily_add_btn", "Add")}
               </Button>
             </form>
           </section>
@@ -234,11 +237,11 @@ function DailyOS() {
           <section className="card-surface p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="label-eyebrow">Practices</p>
-                <h2 className="mt-1 text-xl">Character in motion</h2>
+                <p className="label-eyebrow">{t("daily_practices", "Practices")}</p>
+                <h2 className="mt-1 text-xl">{t("daily_character_in_motion", "Character in motion")}</h2>
               </div>
               <span className="text-xs text-muted-foreground">
-                {habits.filter((h) => h.completedToday).length}/{habits.length} today
+                {habits.filter((h) => h.completedToday).length}/{habits.length} {t("daily_today_label", "today")}
               </span>
             </div>
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
@@ -247,7 +250,7 @@ function DailyOS() {
                   key={h.id}
                   onClick={() => {
                     toggleHabit(h.id);
-                    if (!h.completedToday) toast.success(`${h.name} — streak ${h.streak + 1}`);
+                    if (!h.completedToday) toast.success(`${t(`habit_${h.id}_name`, h.name)} — ${t("daily_streak", "Streak")} ${h.streak + 1}`);
                   }}
                   className={cn(
                     "flex items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:shadow-soft",
@@ -267,9 +270,9 @@ function DailyOS() {
                     {h.completedToday && <Check className="size-3" />}
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-medium">{h.name}</span>
+                    <span className="block text-sm font-medium">{t(`habit_${h.id}_name`, h.name)}</span>
                     <span className="text-xs text-muted-foreground">
-                      {h.trait} · {h.streak} day streak
+                      {t(`trait_${h.id}_name`, h.trait)} · {h.streak} {t("daily_day_streak", "day streak")}
                     </span>
                   </span>
                 </button>
@@ -284,34 +287,34 @@ function DailyOS() {
           <section className="card-surface p-6">
             <div className="flex items-center gap-2">
               <Moon className="size-4 text-accent" />
-              <p className="label-eyebrow">End of day reflection</p>
+              <p className="label-eyebrow">{t("daily_reflection", "End of day reflection")}</p>
             </div>
             <div className="mt-4 space-y-3">
               <Textarea
                 rows={2}
-                placeholder="What compounded today?"
+                placeholder={t("daily_compounded_placeholder", "What compounded today?")}
                 value={form.compounded}
                 onChange={(e) => setForm({ ...form, compounded: e.target.value })}
               />
               <Textarea
                 rows={2}
-                placeholder="What leaked?"
+                placeholder={t("daily_leaked_placeholder", "What leaked?")}
                 value={form.leaked}
                 onChange={(e) => setForm({ ...form, leaked: e.target.value })}
               />
               <Textarea
                 rows={2}
-                placeholder="Tomorrow's one thing"
+                placeholder={t("daily_tomorrow_placeholder", "Tomorrow's one thing")}
                 value={form.tomorrow}
                 onChange={(e) => setForm({ ...form, tomorrow: e.target.value })}
               />
               <Button className="w-full" onClick={() => void submitReflection()} disabled={saving}>
-                {saving ? "Saving…" : "Close the day"}
+                {saving ? t("daily_saving", "Saving…") : t("daily_close_day", "Close the day")}
               </Button>
             </div>
             {reflections.length > 0 ? (
               <div className="mt-5 space-y-2 border-t border-border pt-4">
-                <p className="label-eyebrow">Recent</p>
+                <p className="label-eyebrow">{t("daily_recent", "Recent")}</p>
                 {reflections.slice(0, 2).map((r) => (
                   <div key={r.id} className="rounded-xl bg-surface p-3">
                     <p className="text-xs text-muted-foreground">{r.date}</p>
@@ -321,7 +324,7 @@ function DailyOS() {
               </div>
             ) : (
               <p className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
-                No reflections logged yet. Three lines is enough.
+                {t("daily_no_reflections", "No reflections logged yet. Three lines is enough.")}
               </p>
             )}
           </section>
@@ -329,18 +332,17 @@ function DailyOS() {
           <section className="card-surface p-6">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-accent" />
-              <p className="label-eyebrow">Weekly review</p>
+              <p className="label-eyebrow">{t("daily_weekly_review", "Weekly review")}</p>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Sunday, 18:00. Your mentor will recompile the sprint against this week's adherence
-              and rewrite next week's blocks.
+              {t("daily_weekly_review_desc", "Sunday, 18:00. Your mentor will recompile the sprint against this week's adherence and rewrite next week's blocks.")}
             </p>
             <Button
               variant="outline"
               className="mt-4 w-full"
-              onClick={() => toast.success("Weekly review scheduled for Sunday 18:00.")}
+              onClick={() => toast.success(t("daily_review_scheduled", "Weekly review scheduled for Sunday 18:00."))}
             >
-              Schedule review
+              {t("daily_schedule_review", "Schedule review")}
             </Button>
           </section>
         </div>

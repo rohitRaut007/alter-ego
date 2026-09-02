@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLanguage } from "@/lib/i18n";
 import { layers, profile, type Layer } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -52,30 +53,31 @@ const layerLinks: Record<string, "/character" | "/knowledge" | "/daily" | "/lega
 };
 
 function Protocol() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState<Layer | null>(null);
   const average = Math.round(layers.reduce((a, l) => a + l.progress, 0) / layers.length);
 
   return (
     <AppShell>
       <PageHeader
-        eyebrow="The protocol"
-        title="Seven layers, one coherent person."
-        description="Each layer inherits from the one above it. Open a layer to see what it's made of."
+        eyebrow={t("protocol_main_title", "The protocol")}
+        title={t("protocol_title", "Seven layers, one coherent person.")}
+        description={t("protocol_layers_description", "Each layer inherits from the one above it. Open a layer to see what it's made of.")}
       />
 
       <section className="card-surface rise-in mb-6 flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="label-eyebrow">Identity statement</p>
+          <p className="label-eyebrow">{t("protocol_identity_statement", "Identity statement")}</p>
           <p className="mt-2 max-w-xl font-display text-2xl leading-snug sm:text-3xl">
-            “{profile.identityStatement}”
+            “{t("profile_identity_statement_val", profile.identityStatement)}”
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
-            {profile.alterEgo} · {profile.archetype} · {profile.timeline} horizon
+            {t("profile_alter_ego_val", profile.alterEgo)} · {t("profile_archetype_val", profile.archetype)} · {t("profile_timeline_val", profile.timeline)} horizon
           </p>
         </div>
         <div className="shrink-0 text-center">
           <p className="font-display text-5xl">{average}%</p>
-          <p className="mt-1 text-xs text-muted-foreground">protocol built</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("protocol_built", "protocol built")}</p>
         </div>
       </section>
 
@@ -102,19 +104,19 @@ function Protocol() {
                         : "bg-secondary text-muted-foreground",
                   )}
                 >
-                  {layer.status}
+                  {t(`status_${layer.status.replace("-", "_")}`, layer.status)}
                 </span>
               </div>
               <p className="mt-5 font-mono text-[11px] text-muted-foreground">
-                Layer 0{layer.index}
+                {t("protocol_layer_label", "Layer")} 0{layer.index}
               </p>
-              <h2 className="mt-1 text-xl">{layer.name}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{layer.tagline}</p>
+              <h2 className="mt-1 text-xl">{t(`layer_${layer.id.replace("-", "_")}_name`, layer.name)}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(`layer_${layer.id.replace("-", "_")}_tagline`, layer.tagline)}</p>
               <Progress value={layer.progress} className="mt-5 h-1" />
               <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{layer.progress}% built</span>
+                <span>{layer.progress}% {t("protocol_percent_built", "built")}</span>
                 <span className="flex items-center gap-1 transition-transform group-hover:translate-x-0.5">
-                  Open <ArrowRight className="size-3" />
+                  {t("protocol_open", "Open")} <ArrowRight className="size-3" />
                 </span>
               </div>
             </button>
@@ -127,28 +129,26 @@ function Protocol() {
           {open && (
             <>
               <DialogHeader>
-                <p className="label-eyebrow">Layer 0{open.index}</p>
-                <DialogTitle className="font-display text-2xl font-normal">
-                  {open.name}
-                </DialogTitle>
+                <p className="label-eyebrow">{t("protocol_layer_label", "Layer")} 0{open.index}</p>
+                <DialogTitle className="font-display text-2xl font-normal">{t(`layer_${open.id.replace("-", "_")}_name`, open.name)}</DialogTitle>
                 <DialogDescription className="leading-relaxed">
-                  {open.description}
+                  {t(`layer_${open.id.replace("-", "_")}_desc`, open.description)}
                 </DialogDescription>
               </DialogHeader>
               <Progress value={open.progress} className="h-1.5" />
               <ul className="space-y-2">
-                {open.highlights.map((h) => (
+                {open.highlights.map((h, idx) => (
                   <li
                     key={h}
                     className="rounded-xl border border-border bg-surface px-4 py-3 text-sm"
                   >
-                    {h}
+                    {t(`layer_${open.id.replace("-", "_")}_h${idx + 1}`, h)}
                   </li>
                 ))}
               </ul>
               <Button asChild className="w-full">
                 <Link to={layerLinks[open.id] ?? "/mentor"}>
-                  {layerLinks[open.id] ? "Open this layer" : "Work on it with your mentor"}
+                  {layerLinks[open.id] ? t("protocol_open_layer", "Open this layer") : t("protocol_work_with_mentor", "Work on it with your mentor")}
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>

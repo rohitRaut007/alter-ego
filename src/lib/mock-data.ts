@@ -5,13 +5,7 @@
  */
 
 export type LayerId =
-  | "identity"
-  | "character"
-  | "knowledge"
-  | "mission"
-  | "daily-os"
-  | "presence"
-  | "legacy";
+  "identity" | "character" | "knowledge" | "mission" | "daily-os" | "presence" | "legacy";
 
 export interface Layer {
   id: LayerId;
@@ -102,8 +96,7 @@ export const profile = {
   name: "Arjun",
   fullName: "Arjun Mehta",
   alterEgo: "The Quiet Architect",
-  identityStatement:
-    "I build systems that outlive the mood I was in when I built them.",
+  identityStatement: "I build systems that outlive the mood I was in when I built them.",
   ambition: "Ship a category-defining AI product and become a public thinker on human systems.",
   timeline: "5 years",
   archetype: "Builder / Strategist",
@@ -168,8 +161,7 @@ export const layers: Layer[] = [
     index: 4,
     name: "Product / Mission Strategy",
     tagline: "The work that carries your name.",
-    description:
-      "Your mission thesis broken into 90-day sprints, bets and measurable key results.",
+    description: "Your mission thesis broken into 90-day sprints, bets and measurable key results.",
     progress: 61,
     status: "active",
     highlights: ["Sprint 02 live", "3 key results", "Day 34 of 90"],
@@ -624,57 +616,157 @@ export const suggestedPrompts = [
 export const onboardingQuestions = [
   {
     id: "q1",
-    stage: "Ambition",
-    question: "What is the largest thing you want to be true about your life in ten years?",
-    placeholder: "Be specific. Vague ambition produces vague protocols.",
+    stage: "Identity",
+    question: "What are you trying to become?",
+    placeholder: "Describe the identity or figure you are engineering.",
     suggestions: [
-      "Build a company that outlives me",
-      "Become a respected public thinker",
-      "Financial and creative sovereignty",
+      "Category-defining founder",
+      "Public thinker & writer",
+      "Sovereign builder",
     ],
   },
   {
     id: "q2",
-    stage: "Position",
-    question: "Where are you right now — honestly? Work, money, health, relationships.",
-    placeholder: "The protocol is only as good as this answer.",
-    suggestions: ["Employed, restless, saving", "Early founder, pre-revenue", "Rebuilding from zero"],
+    stage: "Domain",
+    question: "What domain does your biggest ambition live in?",
+    placeholder: "Technology, art, finance, health, philosophy, etc.",
+    suggestions: [
+      "Artificial Intelligence & Software",
+      "Creative Writing & Media",
+      "Finance & Sovereignty",
+    ],
   },
   {
     id: "q3",
-    stage: "Personality",
-    question: "How would the people closest to you describe your character?",
-    placeholder: "Strengths and the uncomfortable parts.",
-    suggestions: ["Intense and private", "Warm but scattered", "Disciplined, low risk appetite"],
+    stage: "Vision",
+    question: "What does your fully achieved version look like?",
+    placeholder: "Be specific about your state, output, and lifestyle.",
+    suggestions: [
+      "Deep focus & daily shipping",
+      "Respected authority in my field",
+      "Complete creative freedom",
+    ],
   },
   {
     id: "q4",
-    stage: "Fears",
-    question: "What are you most afraid of becoming?",
-    placeholder: "Name it precisely. This shapes your non-negotiables.",
-    suggestions: ["Comfortable and forgettable", "Busy but unfinished", "Dependent on approval"],
+    stage: "Timeline",
+    question: "What is your target/date?",
+    placeholder: "Specific milestone date or time horizon.",
+    suggestions: ["90 days", "2 years", "5 years"],
   },
   {
     id: "q5",
-    stage: "Goals",
-    question: "What must be true 90 days from now for this to have worked?",
-    placeholder: "One or two measurable outcomes.",
-    suggestions: ["First paying customers", "Published weekly for 12 weeks", "Body and sleep fixed"],
+    stage: "Position",
+    question: "Where are you right now compared to that goal?",
+    placeholder: "Honest appraisal of your current baseline.",
+    suggestions: [
+      "Building foundation from scratch",
+      "Early progress, needs system",
+      "Pivoting to higher leverage",
+    ],
   },
   {
     id: "q6",
-    stage: "Timeline",
-    question: "What horizon are you building on?",
-    placeholder: "Choose the arc your protocol is calibrated to.",
-    suggestions: ["2 years", "5 years", "A lifetime"],
+    stage: "Leverage",
+    question: "What is your biggest strength/advantage?",
+    placeholder: "Your unfair advantage or core talent.",
+    suggestions: [
+      "Obsessive deep focus",
+      "First-principles thinking",
+      "High execution speed",
+    ],
+  },
+  {
+    id: "q7",
+    stage: "Learning",
+    question: "How do you actually learn best?",
+    placeholder: "Building, reading, mentorship, public feedback.",
+    suggestions: [
+      "Building in public & shipping",
+      "Deep reading & synthesis",
+      "Direct trial & error",
+    ],
+  },
+  {
+    id: "q8",
+    stage: "Fears",
+    question: "What do you fear most about this path?",
+    placeholder: "Name your root fear or failure mode.",
+    suggestions: [
+      "Becoming comfortable & average",
+      "Drifting without finishing",
+      "Wasting potential on noise",
+    ],
+  },
+  {
+    id: "q9",
+    stage: "Sprint",
+    question: "What is the most important thing you need to achieve in the next 90 days?",
+    placeholder: "The single non-negotiable metric or deliverable.",
+    suggestions: [
+      "Launch core product to 25 users",
+      "Publish 12 weekly essays",
+      "Build 4-hour daily work habit",
+    ],
+  },
+  {
+    id: "q10",
+    stage: "Character",
+    question: "Which trait would change everything if you developed it?",
+    placeholder: "Focus, discipline, sovereignty, courage, clarity.",
+    suggestions: [
+      "Unshakable Focus",
+      "Relentless Discipline",
+      "Creator Sovereignty",
+    ],
+  },
+  {
+    id: "q11",
+    stage: "Daily OS",
+    question: "What does your ideal day look like?",
+    placeholder: "Morning routine, deep work blocks, evening review.",
+    suggestions: [
+      "4h deep work before noon",
+      "Zero distraction morning block",
+      "Structured work & evening reflection",
+    ],
+  },
+  {
+    id: "q12",
+    stage: "Friction",
+    question: "What has killed your momentum in the past?",
+    placeholder: "Distraction, lack of accountability, changing goals.",
+    suggestions: [
+      "Context switching & noise",
+      "Lack of clear protocol",
+      "Inconsistent execution",
+    ],
+  },
+  {
+    id: "q13",
+    stage: "Transformation",
+    question: "If this works for 90 days, what will be different in your life?",
+    placeholder: "The tangible proof of transformation.",
+    suggestions: [
+      "Operating as a sovereign builder",
+      "Consistent daily shipping practice",
+      "Proof of work & active user base",
+    ],
   },
 ];
 
 export const mentorReplies = [
-  "Noted. That tells me your constraint is attention, not capability — I'm weighting your Daily OS layer accordingly.",
-  "Good. I'd push back on one thing: you described an outcome, not a behaviour. Behaviours are what I can build a protocol from.",
-  "That fear is useful. We'll turn it into a non-negotiable rather than something you manage.",
-  "Clear enough to build on. I'm mapping this to your Character Stack and Mission layers.",
-  "This is the answer that changes your protocol the most. Holding it as your root constraint.",
-  "Locked. Generating your seven-layer protocol now.",
+  "Understood. That defines the root target for your Identity Architecture.",
+  "Good. Domain clarity allows us to calibrate your Knowledge System and reading roadmap.",
+  "Clear vision. We will translate this state into concrete daily practices.",
+  "Target date locked. We will align your 90-day sprint and Legacy Timeline accordingly.",
+  "Honest baseline noted. This delta defines where your protocol applies maximum leverage.",
+  "Solid advantage. We will build your Character Stack to double down on this strength.",
+  "Noted. Your Knowledge pipeline will match this exact learning style.",
+  "That fear is useful. We'll turn it into a non-negotiable guardrail in your Daily OS.",
+  "Clear 90-day focus. Setting this as the core metric for Sprint 02.",
+  "Powerful trait choice. Placing this at the center of your Character Stack.",
+  "Ideal day structured. Mapping this directly to your morning brief and deep work blocks.",
+  "Friction point identified. We are engineering non-negotiable constraints to prevent this.",
+  "Transformation locked. Compiling your full seven-layer protocol now.",
 ];

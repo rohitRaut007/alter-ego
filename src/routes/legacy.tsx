@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppState } from "@/lib/app-state";
+import { useLanguage } from "@/lib/i18n";
 import type { Milestone } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ const horizons: Milestone["horizon"][] = ["2-year", "5-year", "lifetime"];
 
 function Legacy() {
   const { milestones, toggleMilestone, addMilestone } = useAppState();
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [horizon, setHorizon] = useState<Milestone["horizon"]>("2-year");
   const complete = milestones.filter((m) => m.done).length;
@@ -42,22 +44,25 @@ function Legacy() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Layer 07"
-        title="Legacy Timeline"
-        description="The arc your daily protocol is calibrated to. Reviewed every quarter."
+        eyebrow={t("legacy_layer", "Layer 07")}
+        title={t("legacy_title", "Legacy Timeline")}
+        description={t("legacy_description", "The arc your daily protocol is calibrated to. Reviewed every quarter.")}
         action={
-          <Button variant="outline" onClick={() => toast.success("Quarterly review set for 30 Sep.")}>
-            Schedule quarterly review
+          <Button
+            variant="outline"
+            onClick={() => toast.success(t("legacy_review_scheduled", "Quarterly review set for 30 Sep."))}
+          >
+            {t("legacy_schedule_review", "Schedule quarterly review")}
           </Button>
         }
       />
 
       <div className="card-surface rise-in mb-6 grid gap-6 p-6 sm:grid-cols-3">
         {[
-          ["Milestones mapped", milestones.length],
-          ["Completed", complete],
+          [t("legacy_milestones_mapped", "Milestones mapped"), milestones.length],
+          [t("legacy_completed", "Completed"), complete],
           [
-            "Average progress",
+            t("legacy_average_progress", "Average progress"),
             `${Math.round(milestones.reduce((a, m) => a + m.progress, 0) / milestones.length)}%`,
           ],
         ].map(([label, value]) => (
@@ -72,7 +77,7 @@ function Legacy() {
         <TabsList>
           {horizons.map((h) => (
             <TabsTrigger key={h} value={h} className="capitalize">
-              {h}
+              {t(`horizon_${h.replace("-", "_")}`, h)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -83,7 +88,7 @@ function Legacy() {
             <TabsContent key={h} value={h} className="mt-5">
               {list.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border px-4 py-16 text-center text-sm text-muted-foreground">
-                  No milestones on this horizon yet. Add the first one below.
+                  {t("legacy_no_milestones", "No milestones on this horizon yet. Add the first one below.")}
                 </div>
               ) : (
                 <ol className="relative space-y-3 border-l border-border pl-6">
@@ -98,13 +103,18 @@ function Legacy() {
                       <div className="card-surface p-5">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <h2 className={cn("text-lg", m.done && "text-muted-foreground line-through")}>
-                              {m.title}
+                            <h2
+                              className={cn(
+                                "text-lg",
+                                m.done && "text-muted-foreground line-through",
+                              )}
+                            >
+                              {t(`milestone_${m.id}_title`, m.title)}
                             </h2>
-                            <p className="mt-1 text-sm text-muted-foreground">{m.detail}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{t(`milestone_${m.id}_detail`, m.detail)}</p>
                           </div>
                           <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                            {m.due}
+                            {t(`milestone_${m.id}_due`, m.due)}
                           </span>
                         </div>
                         <Progress value={m.progress} className="mt-4 h-1" />
@@ -112,7 +122,7 @@ function Legacy() {
                           <span className="text-xs text-muted-foreground">{m.progress}%</span>
                           <Button size="sm" variant="ghost" onClick={() => toggleMilestone(m.id)}>
                             <Check className="size-3.5" />
-                            {m.done ? "Reopen" : "Mark complete"}
+                            {m.done ? t("legacy_reopen", "Reopen") : t("legacy_mark_complete", "Mark complete")}
                           </Button>
                         </div>
                       </div>
@@ -128,13 +138,13 @@ function Legacy() {
       <section className="card-surface mt-6 p-5">
         <div className="flex items-center gap-2">
           <Flag className="size-4 text-accent" />
-          <p className="label-eyebrow">Add milestone</p>
+          <p className="label-eyebrow">{t("legacy_add_milestone", "Add milestone")}</p>
         </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="What must be true?"
+            placeholder={t("legacy_placeholder", "What must be true?")}
           />
           <div className="flex gap-2">
             {horizons.map((h) => (
@@ -144,19 +154,24 @@ function Legacy() {
                 onClick={() => setHorizon(h)}
                 className="capitalize"
               >
-                {h}
+                {t(`horizon_${h.replace("-", "_")}`, h)}
               </Button>
             ))}
             <Button
               variant="secondary"
               onClick={() => {
                 if (!title.trim()) {
-                  toast.error("Give the milestone a name.");
+                  toast.error(t("legacy_name_required", "Give the milestone a name."));
                   return;
                 }
-                addMilestone({ title: title.trim(), detail: "Added manually", due: "TBD", horizon });
+                addMilestone({
+                  title: title.trim(),
+                  detail: "Added manually",
+                  due: "TBD",
+                  horizon,
+                });
                 setTitle("");
-                toast.success("Milestone added to your timeline.");
+                toast.success(t("legacy_added", "Milestone added to your timeline."));
               }}
             >
               <Plus className="size-4" />

@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sovereignty Awaits — Alter Ego OS" },
-      { name: "description", content: "Authenticate to access your personal transformation operating system." },
+      {
+        name: "description",
+        content: "Authenticate to access your personal transformation operating system.",
+      },
     ],
   }),
   component: AuthPage,
@@ -20,6 +24,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,7 +58,7 @@ function AuthPage() {
         });
         if (error) throw error;
         if (data.user) {
-          toast.success("Account created successfully!");
+          toast.success(t("auth_success", "Account created successfully!"));
           // Wait for trigger to create profile
           await new Promise((r) => setTimeout(r, 1000));
           navigate({ to: "/onboarding" });
@@ -64,8 +69,8 @@ function AuthPage() {
           password,
         });
         if (error) throw error;
-        toast.success("Welcome back to your system.");
-        
+        toast.success(t("auth_welcome_back", "Welcome back to your system."));
+
         // Fetch onboarding status from profile
         const { data: profileData } = await supabase
           .from("profiles")
@@ -80,8 +85,9 @@ function AuthPage() {
           navigate({ to: "/onboarding" });
         }
       }
-    } catch (err: any) {
-      toast.error(err.message || "An authentication error occurred.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t("auth_auth_error", "An authentication error occurred.");
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -95,23 +101,23 @@ function AuthPage() {
             <Sparkles className="size-5" />
           </span>
           <h1 className="text-display text-3xl font-normal tracking-tight">
-            {isSignUp ? "Create your workspace" : "Sovereignty awaits"}
+            {isSignUp ? t("auth_create_workspace", "Create your workspace") : t("auth_sovereignty", "Sovereignty awaits")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isSignUp 
-              ? "Start the journey to engineer your personal operating system." 
-              : "Enter your key credentials to access your daily dashboard."}
+            {isSignUp
+              ? t("auth_start_journey", "Start the journey to engineer your personal operating system.")
+              : t("auth_enter_credentials", "Enter your key credentials to access your daily dashboard.")}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="mt-8 space-y-4">
           {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName">{t("auth_full_name", "Full Name")}</Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Arjun Mehta"
+                placeholder={t("auth_name_placeholder", "Arjun Mehta")}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="bg-surface border-border"
@@ -120,11 +126,11 @@ function AuthPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email">{t("auth_email", "Email address")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="name@domain.com"
+              placeholder={t("auth_email_placeholder", "name@domain.com")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-surface border-border"
@@ -132,11 +138,11 @@ function AuthPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth_password", "Password")}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder={t("auth_password_placeholder", "••••••••")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-surface border-border"
@@ -149,7 +155,7 @@ function AuthPage() {
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                {isSignUp ? "Begin onboarding" : "Access OS"}
+                {isSignUp ? t("auth_begin_onboarding", "Begin onboarding") : t("auth_access_os", "Access OS")}
                 <ArrowRight className="size-4" />
               </>
             )}
@@ -161,7 +167,7 @@ function AuthPage() {
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            {isSignUp ? "Already have an account? Sign in" : "New user? Create a profile"}
+            {isSignUp ? t("auth_have_account", "Already have an account? Sign in") : t("auth_new_user", "New user? Create a profile")}
           </button>
         </div>
       </div>

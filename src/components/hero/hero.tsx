@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Suspense, lazy, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n";
 
 const HeroScene = lazy(() => import("./hero-scene"));
 
@@ -20,6 +21,7 @@ export function Hero() {
   const [mounted, setMounted] = useState(false);
   const [engagement, setEngagement] = useState(0);
   const reduced = useReducedMotion();
+  const { t } = useLanguage();
 
   useEffect(() => setMounted(true), []);
 
@@ -41,7 +43,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-soft backdrop-blur"
           >
             <span className="size-1.5 animate-pulse rounded-full bg-accent" />
-            Personal transformation, engineered
+            {t("hero_badge", "Personal transformation, engineered")}
           </motion.span>
 
           <motion.h1
@@ -51,8 +53,7 @@ export function Hero() {
             variants={rise}
             className="text-display mt-6 text-[2.7rem] leading-[1.02] sm:text-6xl lg:text-[4.1rem]"
           >
-            Enter the system
-            <br className="hidden sm:block" /> of your future self.
+            {t("hero_title", "Become the person you were meant to become.")}
           </motion.h1>
 
           <motion.p
@@ -62,8 +63,10 @@ export function Hero() {
             variants={rise}
             className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground lg:mx-0"
           >
-            Seven living layers, one alter ego — orbiting a protocol that recalibrates itself as you
-            change.
+            {t(
+              "hero_subtitle",
+              "An AI-powered personal operating system that turns your ambition into a seven-layer protocol, a daily practice and a mentor that holds you to it.",
+            )}
           </motion.p>
 
           <motion.div
@@ -75,12 +78,12 @@ export function Hero() {
           >
             <Button size="lg" asChild className="w-full sm:w-auto">
               <Link to="/onboarding">
-                Build My Alter Ego
+                {t("hero_cta", "Build My Alter Ego")}
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
-              <Link to="/dashboard">See a live protocol</Link>
+              <Link to="/dashboard">{t("hero_secondary_cta", "Explore the system")}</Link>
             </Button>
           </motion.div>
 
@@ -91,7 +94,7 @@ export function Hero() {
             variants={rise}
             className="mt-4 text-xs text-muted-foreground"
           >
-            10-minute interview · Protocol generated instantly
+            {t("hero_footnote", "10-minute interview · Protocol generated instantly")}
           </motion.p>
         </div>
 
@@ -111,12 +114,9 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: reduced ? 0 : 2.5, duration: 0.8 }}
             className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-border/70 bg-card/70 px-3.5 py-1.5 text-[11px] text-muted-foreground shadow-soft backdrop-blur-md"
           >
-            Move your cursor into the protocol
+            {t("hero_cursor_hint", "Move your cursor into the protocol")}
           </motion.div>
 
           <motion.div
@@ -127,12 +127,12 @@ export function Hero() {
             }}
             transition={{ type: "spring", stiffness: 120, damping: 20 }}
           >
-            <p className="label-eyebrow text-[9px]">Core coherence</p>
+            <p className="label-eyebrow text-[9px]">{t("hero_core_coherence", "Core coherence")}</p>
             <p className="font-display text-2xl leading-none">
               {Math.round(58 + engagement * 39)}
               <span className="text-sm text-muted-foreground">%</span>
             </p>
-            <p className="mt-1 text-[10px] text-muted-foreground">Layers responding to input</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">{t("hero_layers_responding", "Layers responding to input")}</p>
           </motion.div>
         </div>
       </div>
@@ -140,9 +140,9 @@ export function Hero() {
       <div className="relative mx-auto max-w-6xl px-5 pb-14 sm:px-8">
         <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3">
           {[
-            ["7 layers", "From identity down to daily practice"],
-            ["90-day sprints", "Long horizons, short feedback loops"],
-            ["Always-on mentor", "Context-aware, never generic"],
+            [t("hero_feature_1_title", "7 layers"), t("hero_feature_1_desc", "From identity down to daily practice")],
+            [t("hero_feature_2_title", "90-day sprints"), t("hero_feature_2_desc", "Long horizons, short feedback loops")],
+            [t("hero_feature_3_title", "Always-on mentor"), t("hero_feature_3_desc", "Context-aware, never generic")],
           ].map(([k, v], i) => (
             <motion.div
               key={k}

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppState } from "@/lib/app-state";
+import { useLanguage } from "@/lib/i18n";
 import { layers, morningBrief, profile, sprint, weeklyMomentum } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -31,22 +32,24 @@ export const Route = createFileRoute("/dashboard")({
       { property: "og:title", content: "Dashboard — Alter Ego OS" },
       {
         property: "og:description",
-        content: "Today's priority, your 90-day sprint and every layer of your protocol at a glance.",
+        content:
+          "Today's priority, your 90-day sprint and every layer of your protocol at a glance.",
       },
     ],
   }),
   component: Dashboard,
 });
 
-function greeting() {
+function getGreetingKey() {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return "greeting_morning";
+  if (h < 18) return "greeting_afternoon";
+  return "greeting_evening";
 }
 
 function Dashboard() {
   const { tasks, habits, books, toggleTask, hydrated, settings } = useAppState();
+  const { t } = useLanguage();
   const priority = tasks.find((t) => t.priority) ?? tasks[0];
   const doneCount = tasks.filter((t) => t.done).length;
   const habitsDone = habits.filter((h) => h.completedToday).length;
@@ -71,16 +74,18 @@ function Dashboard() {
     );
   }
 
+  const greetingText = t(getGreetingKey(), "Good day");
+
   return (
     <AppShell>
       <PageHeader
-        eyebrow={`Day ${sprint.day} of ${sprint.total}`}
-        title={`${greeting()}, ${settings.displayName.split(" ")[0]}.`}
-        description={settings.identityStatement}
+        eyebrow={`${t("dashboard_day_info", "Day")} ${sprint.day} ${t("dashboard_of", "of")} ${sprint.total}`}
+        title={`${greetingText}, ${settings.displayName.split(" ")[0]}.`}
+        description={t("profile_identity_statement_val", settings.identityStatement)}
         action={
           <Button asChild>
             <Link to="/mentor">
-              <MessageSquare className="size-4" /> Ask your mentor
+              <MessageSquare className="size-4" /> {t("ask_your_mentor", "Ask your mentor")}
             </Link>
           </Button>
         }
@@ -88,9 +93,13 @@ function Dashboard() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <section className="card-surface rise-in p-6 lg:col-span-2">
-          <p className="label-eyebrow">Today's priority</p>
-          <h2 className="mt-3 text-2xl leading-snug sm:text-3xl">{priority?.title}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{priority?.detail}</p>
+          <p className="label-eyebrow">{t("todays_priority", "Today's priority")}</p>
+          <h2 className="mt-3 text-2xl leading-snug sm:text-3xl">
+            {priority ? t(`task_${priority.id}_title`, priority.title) : ""}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {priority ? t(`task_${priority.id}_detail`, priority.detail) : ""}
+          </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button
               variant={priority?.done ? "secondary" : "default"}
@@ -98,29 +107,29 @@ function Dashboard() {
                 if (!priority) return;
                 toggleTask(priority.id);
                 toast.success(
-                  priority.done ? "Marked as not done" : "Priority complete — that's the day won.",
+                  priority.done ? t("dashboard_marked_not_done", "Marked as not done") : t("dashboard_priority_complete", "Priority complete — that's the day won."),
                 );
               }}
             >
               <Check className="size-4" />
-              {priority?.done ? "Completed" : "Mark complete"}
+              {priority?.done ? t("completed", "Completed") : t("mark_complete", "Mark complete")}
             </Button>
             <Button variant="outline" asChild>
               <Link to="/daily">
-                Open Daily OS <ArrowRight className="size-4" />
+                {t("open_daily_os", "Open Daily OS")} <ArrowRight className="size-4" />
               </Link>
             </Button>
             <span className="text-xs text-muted-foreground">
-              {priority?.minutes} min · deep work block
+              {priority?.minutes} min · {t("dashboard_deep_work_block", "deep work block")}
             </span>
           </div>
         </section>
 
         <section className="card-surface rise-in p-6">
-          <p className="label-eyebrow">Morning brief</p>
-          <p className="mt-3 font-display text-xl leading-snug">{morningBrief.headline}</p>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{morningBrief.body}</p>
-          <p className="mt-4 font-mono text-[11px] text-muted-foreground">{morningBrief.weather}</p>
+          <p className="label-eyebrow">{t("morning_brief", "Morning brief")}</p>
+          <p className="mt-3 font-display text-xl leading-snug">{t("brief_headline", morningBrief.headline)}</p>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t("brief_body", morningBrief.body)}</p>
+          <p className="mt-4 font-mono text-[11px] text-muted-foreground">{t("brief_weather", morningBrief.weather)}</p>
         </section>
       </div>
 
@@ -128,9 +137,9 @@ function Dashboard() {
         <section className="card-surface p-6 lg:col-span-2">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="label-eyebrow">Current sprint</p>
-              <h3 className="mt-2 text-xl">{sprint.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{sprint.focus}</p>
+              <p className="label-eyebrow">{t("current_sprint", "Current sprint")}</p>
+              <h3 className="mt-2 text-xl">{t("sprint_title_val", sprint.title)}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t("sprint_focus_val", sprint.focus)}</p>
             </div>
             <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
               {Math.round((sprint.day / sprint.total) * 100)}%
@@ -140,7 +149,7 @@ function Dashboard() {
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {sprint.keyResults.map((kr) => (
               <div key={kr.id} className="rounded-xl border border-border bg-surface p-4">
-                <p className="text-xs text-muted-foreground">{kr.label}</p>
+                <p className="text-xs text-muted-foreground">{t(`sprint_kr_${kr.id}_label`, kr.label)}</p>
                 <p className="mt-2 font-display text-2xl">
                   {kr.value}
                   <span className="text-base text-muted-foreground">/{kr.target}</span>
@@ -152,7 +161,7 @@ function Dashboard() {
         </section>
 
         <section className="card-surface p-6">
-          <p className="label-eyebrow">This week</p>
+          <p className="label-eyebrow">{t("dashboard_this_week", "This week")}</p>
           <div className="mt-4 h-40">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyMomentum} margin={{ left: -28, right: 4, top: 4 }}>
@@ -181,7 +190,7 @@ function Dashboard() {
                     background: "var(--card)",
                     fontSize: 12,
                   }}
-                  formatter={(v: number) => [`${v} h`, "Deep work"]}
+                  formatter={(v: number) => [`${v} h`, t("dashboard_deep_work_label", "Deep work")]}
                 />
                 <Area
                   type="monotone"
@@ -194,23 +203,28 @@ function Dashboard() {
             </ResponsiveContainer>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            22.2 hours of deep work · 8% above your four-week average.
+            22.2 {t("daily_hour_logged", "h")} {t("daily_logged_this_week", "logged this week · target 20h")} · 8% {t("dashboard_above_average", "above your four-week average")}.
           </p>
         </section>
       </div>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Tasks today", value: `${doneCount}/${tasks.length}`, icon: Check, to: "/daily" },
           {
-            label: "Practices done",
+            label: t("tasks_today", "Tasks today"),
+            value: `${doneCount}/${tasks.length}`,
+            icon: Check,
+            to: "/daily",
+          },
+          {
+            label: t("practices_done", "Practices done"),
             value: `${habitsDone}/${habits.length}`,
             icon: Target,
             to: "/character",
           },
-          { label: "Longest streak", value: `${bestStreak} days`, icon: Flame, to: "/character" },
+          { label: t("longest_streak", "Longest streak"), value: `${bestStreak} ${t("dashboard_days", "days")}`, icon: Flame, to: "/character" },
           {
-            label: "Reading progress",
+            label: t("reading_progress", "Reading progress"),
             value: `${readingProgress}%`,
             icon: ArrowRight,
             to: "/knowledge",
@@ -233,12 +247,12 @@ function Dashboard() {
       <section className="mt-5">
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <p className="label-eyebrow">Protocol</p>
-            <h3 className="mt-1 text-xl">Seven layers</h3>
+            <p className="label-eyebrow">{t("dashboard_protocol", "Protocol")}</p>
+            <h3 className="mt-1 text-xl">{t("seven_layers", "Seven layers")}</h3>
           </div>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/protocol">
-              View all <ArrowRight className="size-4" />
+              {t("view_all", "View all")} <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>
@@ -261,12 +275,12 @@ function Dashboard() {
                         : "bg-secondary text-muted-foreground",
                   )}
                 >
-                  {l.status}
+                  {t(`status_${l.status.replace("-", "_")}`, l.status)}
                 </span>
               </div>
-              <p className="mt-3 text-sm font-semibold">{l.name}</p>
+              <p className="mt-3 text-sm font-semibold">{t(`layer_${l.id.replace("-", "_")}_name`, l.name)}</p>
               <Progress value={l.progress} className="mt-3 h-1" />
-              <p className="mt-2 text-xs text-muted-foreground">{l.progress}% built</p>
+              <p className="mt-2 text-xs text-muted-foreground">{l.progress}% {t("dashboard_percent_built", "built")}</p>
             </Link>
           ))}
         </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { useAppState } from "@/lib/app-state";
+import { useLanguage } from "@/lib/i18n";
 import { layers, mentorReplies, onboardingQuestions } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/onboarding")({
       { property: "og:title", content: "The Interview — Alter Ego OS" },
       {
         property: "og:description",
-        content: "Answer six questions and receive a personalised seven-layer transformation protocol.",
+        content:
+          "Answer six questions and receive a personalised seven-layer transformation protocol.",
       },
     ],
   }),
@@ -36,6 +38,7 @@ interface Bubble {
 
 function Onboarding() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { setOnboardingAnswer, completeOnboarding, onboarded } = useAppState();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState("");
@@ -46,10 +49,9 @@ function Onboarding() {
     {
       id: "intro",
       role: "mentor",
-      content:
-        "I'm going to ask you six questions. Answer them the way you'd answer at 2am, not the way you'd answer on a podcast. Your protocol is only as honest as this conversation.",
+      content: t("onboarding_intro", "I'm going to ask you thirteen questions. Answer them the way you'd answer at 2am, not the way you'd answer on a podcast. Your protocol is only as honest as this conversation."),
     },
-    { id: "q0", role: "mentor", content: onboardingQuestions[0]!.question },
+    { id: "q0", role: "mentor", content: t(`onboarding_${onboardingQuestions[0]!.id}_question`, onboardingQuestions[0]!.question) },
   ]);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +78,7 @@ function Onboarding() {
     await new Promise((r) => setTimeout(r, 850));
     setBubbles((b) => [
       ...b,
-      { id: `r${step}`, role: "mentor", content: mentorReplies[step] ?? mentorReplies[0]! },
+      { id: `r${step}`, role: "mentor", content: t(`mentor_reply_${step}`, mentorReplies[step] ?? mentorReplies[0]!) },
     ]);
     setThinking(false);
 
@@ -85,7 +87,7 @@ function Onboarding() {
       await new Promise((r) => setTimeout(r, 400));
       setBubbles((b) => [
         ...b,
-        { id: `q${next}`, role: "mentor", content: onboardingQuestions[next]!.question },
+        { id: `q${next}`, role: "mentor", content: t(`onboarding_${onboardingQuestions[next]!.id}_question`, onboardingQuestions[next]!.question) },
       ]);
       setStep(next);
     } else {
@@ -106,13 +108,12 @@ function Onboarding() {
           <span className="flex size-11 items-center justify-center rounded-xl bg-success text-success-foreground">
             <Check className="size-5" />
           </span>
-          <p className="label-eyebrow mt-6">Protocol generated</p>
+          <p className="label-eyebrow mt-6">{t("onboarding_protocol_generated", "Protocol generated")}</p>
           <h1 className="text-display mt-3 text-3xl sm:text-4xl">
-            Your alter ego is The Quiet Architect.
+            {t("onboarding_alter_ego_intro", "Your alter ego is The Quiet Architect.")}
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Seven layers have been compiled from your answers, with a 90-day sprint and a daily
-            operating system ready to run tomorrow morning.
+            {t("onboarding_protocol_compiled", "Seven layers have been compiled from your answers, with a 90-day sprint and a daily operating system ready to run tomorrow morning.")}
           </p>
           <ul className="mt-8 grid gap-2 sm:grid-cols-2">
             {layers.map((l) => (
@@ -121,12 +122,12 @@ function Onboarding() {
                 className="flex items-center gap-2.5 rounded-xl border border-border bg-surface px-3.5 py-3 text-sm"
               >
                 <Check className="size-3.5 text-accent" />
-                {l.name}
+                {t(`layer_${l.id.replace("-", "_")}_name`, l.name)}
               </li>
             ))}
           </ul>
           <Button size="lg" className="mt-8 w-full" onClick={() => navigate({ to: "/dashboard" })}>
-            Enter my dashboard <ArrowRight className="size-4" />
+            {t("onboarding_enter_dashboard", "Enter my dashboard")} <ArrowRight className="size-4" />
           </Button>
         </div>
       </div>
@@ -142,11 +143,9 @@ function Onboarding() {
           </span>
           <div className="flex-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold">
-                {current ? current.stage : "Compiling"}
-              </span>
+              <span className="font-semibold">{current ? t(`onboarding_${current.id}_stage`, current.stage) : t("onboarding_compiling", "Compiling")}</span>
               <span className="text-muted-foreground">
-                {Math.min(step + 1, onboardingQuestions.length)} of {onboardingQuestions.length}
+                {Math.min(step + 1, onboardingQuestions.length)} {t("onboarding_of_total", "of")} {onboardingQuestions.length}
               </span>
             </div>
             <Progress value={progress} className="mt-2 h-1" />
@@ -171,14 +170,14 @@ function Onboarding() {
           ))}
           {thinking && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Mentor is thinking…
+              <Loader2 className="size-3.5 animate-spin" /> {t("mentor_thinking", "Mentor is thinking…")}
             </div>
           )}
           {generating && (
             <div className="rise-in rounded-2xl border border-border bg-card p-6 shadow-soft">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Loader2 className="size-4 animate-spin text-accent" />
-                Compiling your seven-layer protocol
+                {t("onboarding_compiling_protocol", "Compiling your seven-layer protocol")}
               </div>
               <div className="mt-4 space-y-2">
                 {layers.map((l, i) => (
@@ -188,7 +187,7 @@ function Onboarding() {
                     style={{ animationDelay: `${i * 120}ms` }}
                   >
                     <span className="size-1.5 rounded-full bg-accent" />
-                    {l.name}
+                    {t(`layer_${l.id.replace("-", "_")}_name`, l.name)}
                   </div>
                 ))}
               </div>
@@ -202,21 +201,24 @@ function Onboarding() {
         <div className="sticky bottom-0 border-t border-border bg-background/90 backdrop-blur-md">
           <div className="mx-auto max-w-3xl px-5 py-4 sm:px-8">
             <div className="mb-3 flex flex-wrap gap-2">
-              {current.suggestions.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setDraft(s)}
-                  className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
-                >
-                  {s}
-                </button>
-              ))}
+              {current.suggestions.map((s, idx) => {
+                const translatedSugg = t(`onboarding_${current.id}_sugg${idx + 1}`, s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setDraft(translatedSugg)}
+                    className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                  >
+                    {translatedSugg}
+                  </button>
+                );
+              })}
             </div>
             <div className="flex items-end gap-2">
               <Textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder={current.placeholder}
+                placeholder={t(`onboarding_${current.id}_placeholder`, current.placeholder)}
                 rows={2}
                 className="resize-none bg-card"
                 onKeyDown={(e) => {
@@ -231,9 +233,13 @@ function Onboarding() {
                 className="size-11 shrink-0"
                 disabled={!draft.trim() || thinking}
                 onClick={() => void submit(draft)}
-                aria-label="Send answer"
+                aria-label={t("onboarding_send_answer", "Send answer")}
               >
-                {thinking ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {thinking ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </Button>
             </div>
           </div>

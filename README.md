@@ -1,25 +1,23 @@
 # Alter Ego OS
 
 alter-ego-os/
-├── public/                 # Static Assets (Images, Icons, Fonts)
-├── src/                    # Main Source Code
-│   ├── assets/             # Images, SVGs, Lottie files, 3D Models
-│   ├── components/         # Reusable UI Components
-│   │   ├── hero/           # Hero Section Specific Files
-│   │   │   ├── Hero.jsx/tsx           # Main Hero Component
-│   │   │   ├── HeroAnimation.jsx/tsx  # Canvas/Animation Logic
-│   │   │   └── Hero.module.css        # Hero Section Styles
-│   │   ├── ui/             # Buttons, Cards, Modals
-│   │   └── os/             # Window, Desktop, Taskbar (if OS theme)
-│   ├── hooks/              # Custom React Hooks (e.g., useAnimation, useMousePosition)
-│   ├── styles/ or App.css  # Global Tailwind / CSS / Animation keyframes
-│   ├── utils/              # Helper functions
-│   ├── App.jsx/tsx         # Main Layout Component
-│   └── main.jsx/tsx        # Entry point
-├── package.json            # Dependencies (Framer Motion, Three.js, GSAP, etc.)
-└── tailwind.config.js      # Custom animations & keyframes config
-
-
+├── public/ # Static Assets (Images, Icons, Fonts)
+├── src/ # Main Source Code
+│ ├── assets/ # Images, SVGs, Lottie files, 3D Models
+│ ├── components/ # Reusable UI Components
+│ │ ├── hero/ # Hero Section Specific Files
+│ │ │ ├── Hero.jsx/tsx # Main Hero Component
+│ │ │ ├── HeroAnimation.jsx/tsx # Canvas/Animation Logic
+│ │ │ └── Hero.module.css # Hero Section Styles
+│ │ ├── ui/ # Buttons, Cards, Modals
+│ │ └── os/ # Window, Desktop, Taskbar (if OS theme)
+│ ├── hooks/ # Custom React Hooks (e.g., useAnimation, useMousePosition)
+│ ├── styles/ or App.css # Global Tailwind / CSS / Animation keyframes
+│ ├── utils/ # Helper functions
+│ ├── App.jsx/tsx # Main Layout Component
+│ └── main.jsx/tsx # Entry point
+├── package.json # Dependencies (Framer Motion, Three.js, GSAP, etc.)
+└── tailwind.config.js # Custom animations & keyframes config
 
 supabase:
 Name : Alter Ego
@@ -236,15 +234,6 @@ For now, use mock/local data and frontend state where backend functionality is n
 
 The final result should feel like a real premium AI product ready for a startup demo, not a generic admin dashboard.
 
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/e15096f7-e7e2-4e1a-9033-ccbd01270393).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -256,5 +245,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-

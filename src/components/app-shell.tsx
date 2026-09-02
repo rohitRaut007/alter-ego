@@ -14,38 +14,48 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 import { useAppState } from "@/lib/app-state";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
-const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
-  { to: "/daily", label: "Daily OS", icon: Sun },
-  { to: "/protocol", label: "Protocol", icon: Compass },
-  { to: "/mentor", label: "AI Mentor", icon: MessageSquare },
-  { to: "/character", label: "Character", icon: UserCog },
-  { to: "/knowledge", label: "Knowledge", icon: BookOpen },
-  { to: "/legacy", label: "Legacy", icon: Timer },
-  { to: "/settings", label: "Settings", icon: Settings },
+const rawNavItems = [
+  { to: "/dashboard", key: "nav_dashboard", fallback: "Dashboard", icon: LayoutGrid },
+  { to: "/daily", key: "nav_daily_os", fallback: "Daily OS", icon: Sun },
+  { to: "/protocol", key: "nav_protocol", fallback: "Protocol", icon: Compass },
+  { to: "/mentor", key: "nav_mentor", fallback: "AI Mentor", icon: MessageSquare },
+  { to: "/character", key: "nav_character", fallback: "Character", icon: UserCog },
+  { to: "/knowledge", key: "nav_knowledge", fallback: "Knowledge", icon: BookOpen },
+  { to: "/legacy", key: "nav_legacy", fallback: "Legacy", icon: Timer },
+  { to: "/settings", key: "nav_settings", fallback: "Settings", icon: Settings },
 ] as const;
-
-const mobileItems = navItems.filter((i) =>
-  ["/dashboard", "/daily", "/mentor", "/protocol", "/settings"].includes(i.to),
-);
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { settings, tasks } = useAppState();
+  const { t } = useLanguage();
   const remaining = tasks.filter((t) => !t.done).length;
+
+  const navItems = rawNavItems.map((item) => ({
+    ...item,
+    label: t(item.key, item.fallback),
+  }));
+
+  const mobileItems = navItems.filter((i) =>
+    ["/dashboard", "/daily", "/mentor", "/protocol", "/settings"].includes(i.to),
+  );
 
   return (
     <div className="min-h-screen w-full bg-background">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar px-4 py-6 lg:flex">
-        <Link to="/" className="flex items-center gap-2.5 px-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="size-4" />
-          </span>
-          <span className="text-sm font-semibold tracking-tight">Alter Ego OS</span>
-        </Link>
+        <div className="flex items-center justify-between px-2">
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Sparkles className="size-4" />
+            </span>
+            <span className="text-sm font-semibold tracking-tight">{t("app_name", "Alter Ego OS")}</span>
+          </Link>
+        </div>
 
-        <nav className="mt-8 flex flex-1 flex-col gap-1">
+        <nav className="mt-6 flex flex-1 flex-col gap-1">
           {navItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             return (
@@ -76,9 +86,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
+        <div className="mb-3">
+          <LanguageSelector className="w-full justify-between" />
+        </div>
+
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="label-eyebrow">Alter ego</p>
-          <p className="mt-1.5 font-display text-lg leading-tight">{settings.alterEgo}</p>
+          <p className="label-eyebrow">{t("app_alter_ego_label", "Alter ego")}</p>
+          <p className="mt-1.5 font-display text-lg leading-tight">{t("profile_alter_ego_val", settings.alterEgo)}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             {settings.displayName}
           </p>
@@ -91,9 +105,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Sparkles className="size-3.5" />
             </span>
-            <span className="text-sm font-semibold">Alter Ego OS</span>
+            <span className="text-sm font-semibold">{t("app_name", "Alter Ego OS")}</span>
           </Link>
-          <span className="text-xs text-muted-foreground">{settings.alterEgo}</span>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-6xl px-5 pb-28 pt-6 sm:px-8 lg:pb-16 lg:pt-10">

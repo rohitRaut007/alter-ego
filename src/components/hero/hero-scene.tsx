@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { NODES, PALETTE, STAGE, type NodeSpec } from "./scene-config";
+import { useLanguage } from "@/lib/i18n";
 
 function easeOut(t: number) {
   return 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
@@ -112,7 +113,12 @@ function Core({ engagement, reduced }: { engagement: React.RefObject<number>; re
       {/* volumetric halo */}
       <mesh ref={glow} scale={1}>
         <sphereGeometry args={[1.45, 32, 32]} />
-        <meshBasicMaterial color={PALETTE.bronzeLight} transparent opacity={0.07} depthWrite={false} />
+        <meshBasicMaterial
+          color={PALETTE.bronzeLight}
+          transparent
+          opacity={0.07}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );
@@ -200,8 +206,8 @@ function OrbitNode({
       {hovered && (
         <Html distanceFactor={9} position={[0, spec.size + 0.22, 0]} center zIndexRange={[20, 0]}>
           <div className="pointer-events-none w-40 rounded-xl border border-border/80 bg-card/85 px-3 py-2 text-center shadow-lift backdrop-blur-md">
-            <p className="text-[11px] font-semibold tracking-tight text-foreground">{spec.label}</p>
-            <p className="mt-0.5 text-[9px] leading-snug text-muted-foreground">{spec.detail}</p>
+            <p className="text-[11px] font-semibold tracking-tight text-foreground">{t(`hero_node_${spec.id}_label`, spec.label)}</p>
+            <p className="mt-0.5 text-[9px] leading-snug text-muted-foreground">{t(`hero_node_${spec.id}_detail`, spec.detail)}</p>
           </div>
         </Html>
       )}
@@ -211,8 +217,13 @@ function OrbitNode({
 
 /* ----------------------------------------------------------------- links */
 
+interface LineRef {
+  material: { opacity: number };
+  geometry: { setPositions: (p: number[]) => void };
+}
+
 function Links({ positions }: { positions: THREE.Vector3[] }) {
-  const refs = useRef<any[]>([]);
+  const refs = useRef<(LineRef | null)[]>([]);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -232,7 +243,9 @@ function Links({ positions }: { positions: THREE.Vector3[] }) {
       {NODES.map((n, i) => (
         <Line
           key={n.id}
-          ref={(r: any) => (refs.current[i] = r)}
+          ref={(r: LineRef | null) => {
+            refs.current[i] = r;
+          }}
           points={[
             [0, 0, 0],
             [1, 0, 0],
@@ -286,7 +299,7 @@ function Particles({
     (p.material as THREE.PointsMaterial).opacity = appear * 0.55;
     if (reduced) return;
 
-    const arr = (p.geometry.attributes['position'] as THREE.BufferAttribute).array as Float32Array;
+    const arr = (p.geometry.attributes["position"] as THREE.BufferAttribute).array as Float32Array;
     const c = cursor.current;
     const dt = Math.min(delta, 0.05);
 
@@ -326,7 +339,7 @@ function Particles({
       arr[ix + 1] = py + vy;
       arr[ix + 2] = pz + vz;
     }
-    (p.geometry.attributes['position'] as THREE.BufferAttribute).needsUpdate = true;
+    (p.geometry.attributes["position"] as THREE.BufferAttribute).needsUpdate = true;
     p.rotation.y = t * 0.012;
   });
 
