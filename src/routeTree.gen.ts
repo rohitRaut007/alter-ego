@@ -18,6 +18,7 @@ import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LegacyRouteImport } from './routes/legacy'
 import { Route as MentorRouteImport } from './routes/mentor'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PersonalityRouteImport } from './routes/personality'
 import { Route as ProtocolRouteImport } from './routes/protocol'
 import { Route as SettingsRouteImport } from './routes/settings'
 
@@ -66,6 +67,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PersonalityRoute = PersonalityRouteImport.update({
+  id: '/personality',
+  path: '/personality',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtocolRoute = ProtocolRouteImport.update({
   id: '/protocol',
   path: '/protocol',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/legacy': typeof LegacyRoute
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
+  '/personality': typeof PersonalityRoute
   '/protocol': typeof ProtocolRoute
   '/settings': typeof SettingsRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/legacy': typeof LegacyRoute
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
+  '/personality': typeof PersonalityRoute
   '/protocol': typeof ProtocolRoute
   '/settings': typeof SettingsRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/legacy': typeof LegacyRoute
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
+  '/personality': typeof PersonalityRoute
   '/protocol': typeof ProtocolRoute
   '/settings': typeof SettingsRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/legacy'
     | '/mentor'
     | '/onboarding'
+    | '/personality'
     | '/protocol'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/legacy'
     | '/mentor'
     | '/onboarding'
+    | '/personality'
     | '/protocol'
     | '/settings'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/legacy'
     | '/mentor'
     | '/onboarding'
+    | '/personality'
     | '/protocol'
     | '/settings'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   LegacyRoute: typeof LegacyRoute
   MentorRoute: typeof MentorRoute
   OnboardingRoute: typeof OnboardingRoute
+  PersonalityRoute: typeof PersonalityRoute
   ProtocolRoute: typeof ProtocolRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/personality': {
+      id: '/personality'
+      path: '/personality'
+      fullPath: '/personality'
+      preLoaderRoute: typeof PersonalityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/protocol': {
       id: '/protocol'
       path: '/protocol'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegacyRoute: LegacyRoute,
   MentorRoute: MentorRoute,
   OnboardingRoute: OnboardingRoute,
+  PersonalityRoute: PersonalityRoute,
   ProtocolRoute: ProtocolRoute,
   SettingsRoute: SettingsRoute,
 }

@@ -144,6 +144,7 @@ function OrbitNode({
   const [hovered, setHovered] = useState(false);
   const proximity = useRef(0);
   const tmp = useMemo(() => new THREE.Vector3(), []);
+  const { t } = useLanguage();
 
   useFrame((state, delta) => {
     const g = group.current;

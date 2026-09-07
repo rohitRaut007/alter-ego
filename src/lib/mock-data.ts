@@ -27,6 +27,8 @@ export interface Task {
   minutes: number;
   done: boolean;
   priority: boolean;
+  dueDate?: string | null;
+  recurrence?: "once" | "daily" | "weekly";
 }
 
 export interface Habit {
@@ -613,27 +615,43 @@ export const suggestedPrompts = [
   "What should I read next and why?",
 ];
 
-export const onboardingQuestions = [
+export interface OnboardingQuestion {
+  id: string;
+  stage: string;
+  question: string;
+  placeholder: string;
+  suggestions: string[];
+  multiSelect?: boolean;
+}
+
+export const onboardingQuestions: OnboardingQuestion[] = [
   {
     id: "q1",
     stage: "Identity",
     question: "What are you trying to become?",
     placeholder: "Describe the identity or figure you are engineering.",
+    multiSelect: true,
     suggestions: [
       "Category-defining founder",
       "Public thinker & writer",
       "Sovereign builder",
+      "High-performance athlete",
+      "Creative entrepreneur",
     ],
   },
   {
     id: "q2",
     stage: "Domain",
-    question: "What domain does your biggest ambition live in?",
+    question: "What domain does your biggest ambition live in? (select all that apply)",
     placeholder: "Technology, art, finance, health, philosophy, etc.",
+    multiSelect: true,
     suggestions: [
       "Artificial Intelligence & Software",
       "Creative Writing & Media",
       "Finance & Sovereignty",
+      "Health & Performance",
+      "Education & Teaching",
+      "Art & Design",
     ],
   },
   {
@@ -641,10 +659,13 @@ export const onboardingQuestions = [
     stage: "Vision",
     question: "What does your fully achieved version look like?",
     placeholder: "Be specific about your state, output, and lifestyle.",
+    multiSelect: true,
     suggestions: [
       "Deep focus & daily shipping",
       "Respected authority in my field",
       "Complete creative freedom",
+      "Financial independence",
+      "Global reach & influence",
     ],
   },
   {
@@ -652,13 +673,15 @@ export const onboardingQuestions = [
     stage: "Timeline",
     question: "What is your target/date?",
     placeholder: "Specific milestone date or time horizon.",
-    suggestions: ["90 days", "2 years", "5 years"],
+    multiSelect: false,
+    suggestions: ["90 days", "1 year", "2 years", "5 years"],
   },
   {
     id: "q5",
     stage: "Position",
     question: "Where are you right now compared to that goal?",
     placeholder: "Honest appraisal of your current baseline.",
+    multiSelect: false,
     suggestions: [
       "Building foundation from scratch",
       "Early progress, needs system",
@@ -668,34 +691,44 @@ export const onboardingQuestions = [
   {
     id: "q6",
     stage: "Leverage",
-    question: "What is your biggest strength/advantage?",
+    question: "What are your biggest strengths/advantages? (select all that apply)",
     placeholder: "Your unfair advantage or core talent.",
+    multiSelect: true,
     suggestions: [
       "Obsessive deep focus",
       "First-principles thinking",
       "High execution speed",
+      "Strong network",
+      "Technical expertise",
+      "Creative vision",
     ],
   },
   {
     id: "q7",
     stage: "Learning",
-    question: "How do you actually learn best?",
+    question: "How do you actually learn best? (select all that apply)",
     placeholder: "Building, reading, mentorship, public feedback.",
+    multiSelect: true,
     suggestions: [
       "Building in public & shipping",
       "Deep reading & synthesis",
       "Direct trial & error",
+      "Mentorship & coaching",
+      "Video & audio learning",
     ],
   },
   {
     id: "q8",
     stage: "Fears",
-    question: "What do you fear most about this path?",
+    question: "What do you fear most about this path? (select all that apply)",
     placeholder: "Name your root fear or failure mode.",
+    multiSelect: true,
     suggestions: [
       "Becoming comfortable & average",
       "Drifting without finishing",
       "Wasting potential on noise",
+      "Imposter syndrome & self-doubt",
+      "Running out of time",
     ],
   },
   {
@@ -703,43 +736,57 @@ export const onboardingQuestions = [
     stage: "Sprint",
     question: "What is the most important thing you need to achieve in the next 90 days?",
     placeholder: "The single non-negotiable metric or deliverable.",
+    multiSelect: false,
     suggestions: [
       "Launch core product to 25 users",
       "Publish 12 weekly essays",
       "Build 4-hour daily work habit",
+      "Reach my first revenue milestone",
     ],
   },
   {
     id: "q10",
     stage: "Character",
-    question: "Which trait would change everything if you developed it?",
+    question: "Which traits would change everything if you developed them? (select up to 3)",
     placeholder: "Focus, discipline, sovereignty, courage, clarity.",
+    multiSelect: true,
     suggestions: [
       "Unshakable Focus",
       "Relentless Discipline",
       "Creator Sovereignty",
+      "Radical Clarity",
+      "Courage to Ship",
+      "Strategic Patience",
     ],
   },
   {
     id: "q11",
     stage: "Daily OS",
-    question: "What does your ideal day look like?",
+    question: "What elements does your ideal day include? (select all that apply)",
     placeholder: "Morning routine, deep work blocks, evening review.",
+    multiSelect: true,
     suggestions: [
       "4h deep work before noon",
       "Zero distraction morning block",
       "Structured work & evening reflection",
+      "Daily exercise / movement",
+      "Journaling & planning",
+      "Reading block",
     ],
   },
   {
     id: "q12",
     stage: "Friction",
-    question: "What has killed your momentum in the past?",
+    question: "What has killed your momentum in the past? (select all that apply)",
     placeholder: "Distraction, lack of accountability, changing goals.",
+    multiSelect: true,
     suggestions: [
       "Context switching & noise",
       "Lack of clear protocol",
       "Inconsistent execution",
+      "Social media & phone",
+      "Unclear priorities",
+      "Burnout & energy crashes",
     ],
   },
   {
@@ -747,10 +794,13 @@ export const onboardingQuestions = [
     stage: "Transformation",
     question: "If this works for 90 days, what will be different in your life?",
     placeholder: "The tangible proof of transformation.",
+    multiSelect: true,
     suggestions: [
       "Operating as a sovereign builder",
       "Consistent daily shipping practice",
       "Proof of work & active user base",
+      "Financial independence achieved",
+      "Deep, focused work as default mode",
     ],
   },
 ];

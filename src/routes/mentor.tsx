@@ -56,6 +56,7 @@ function Mentor() {
       }
     } catch (err) {
       console.error("[MENTOR PAGE SEND ERROR]", err);
+      toast.error(t("mentor_error", "Could not reach AI Mentor. Please check your API key configuration."));
     } finally {
       setPending(false);
     }

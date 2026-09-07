@@ -6,33 +6,37 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useNavigate,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Loader2 } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppStateProvider } from "../lib/app-state";
+import { AppStateProvider, useAppState } from "../lib/app-state";
 import { Toaster } from "../components/ui/sonner";
-import { Loader2 } from "lucide-react";
+import { LanguageProvider, useLanguage } from "../lib/i18n";
+
+// ─── Error / Not-Found components ───────────────────────────────────────────
+// NOTE: These render outside the normal React tree, so they cannot rely on
+// context (LanguageProvider / AppStateProvider).  Use hardcoded fallback text.
 
 function NotFoundComponent() {
-  const { t } = useLanguage();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">
-          {t("error_page_not_found", "Page not found")}
-        </h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          {t("error_page_not_found_desc", "The page you're looking for doesn't exist or has been moved.")}
+          The page you&#39;re looking for doesn&#39;t exist or has been moved.
         </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {t("error_go_home", "Go home")}
+            Go home
           </Link>
         </div>
       </div>
@@ -43,7 +47,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  const { t } = useLanguage();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -52,10 +55,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {t("error_page_didnt_load", "This page didn't load")}
+          This page didn&#39;t load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {t("error_page_didnt_load_desc", "Something went wrong on our end. You can try refreshing or head back home.")}
+          Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -65,19 +68,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {t("error_try_again", "Try again")}
+            Try again
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            {t("error_go_home", "Go home")}
+            Go home
           </a>
         </div>
       </div>
     </div>
   );
 }
+
+// ─── Root Route ──────────────────────────────────────────────────────────────
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -123,32 +128,37 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useAppState } from "../lib/app-state";
+// ─── Auth Guard ──────────────────────────────────────────────────────────────
 
 function AppContent() {
-  const { user, loading, onboarded } = useAppState();
+  const { user, loading, onboarded, personalityTestCompleted } = useAppState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (loading) return;
 
     const publicRoutes = ["/", "/auth"];
+    const semiPublicRoutes = ["/onboarding", "/personality"];
     const isPublic = publicRoutes.includes(pathname);
+    const isSemiPublic = semiPublicRoutes.includes(pathname);
 
-    if (!user && !isPublic) {
+    // Allow access if user is authenticated OR if onboarded locally (guest / demo mode)
+    const isUnlocked = Boolean(user || onboarded);
+
+    if (!isUnlocked && !isPublic && !isSemiPublic) {
       void navigate({ to: "/auth" });
-    } else if (user) {
-      if (pathname === "/auth") {
-        if (!onboarded) {
-          void navigate({ to: "/onboarding" });
-        } else {
-          void navigate({ to: "/dashboard" });
-        }
+    } else if (pathname === "/auth" && isUnlocked) {
+      if (!onboarded) {
+        void navigate({ to: "/onboarding" });
+      } else if (!personalityTestCompleted) {
+        void navigate({ to: "/personality" });
+      } else {
+        void navigate({ to: "/dashboard" });
       }
     }
-  }, [user, loading, onboarded, pathname, navigate]);
+  }, [user, loading, onboarded, personalityTestCompleted, pathname, navigate]);
 
   if (loading) {
     return (
@@ -158,10 +168,13 @@ function AppContent() {
     );
   }
 
+  // Suppress unused variable warning — t is available for child components via context
+  void t;
+
   return <Outlet />;
 }
 
-import { LanguageProvider } from "../lib/i18n";
+// ─── Root Component ──────────────────────────────────────────────────────────
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

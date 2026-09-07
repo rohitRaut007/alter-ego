@@ -12,13 +12,6 @@ import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { callMentorAiServerFn } from "../services/mentor-ai";
 import {
-  books as seedBooks,
-  conversationSeed,
-  habits as seedHabits,
-  milestones as seedMilestones,
-  notes as seedNotes,
-  profile as seedProfile,
-  tasks as seedTasks,
   type Book,
   type ChatMessage,
   type Conversation,
@@ -37,9 +30,19 @@ export interface Reflection {
   rating: number;
 }
 
+export interface PersonalityScores {
+  openness: number;
+  conscientiousness: number;
+  extraversion: number;
+  agreeableness: number;
+  neuroticism: number;
+}
+
 interface PersistedState {
   onboarded: boolean;
-  onboardingAnswers: Record<string, string>;
+  personalityTestCompleted: boolean;
+  onboardingAnswers: Record<string, string | string[]>;
+  personalityScores: PersonalityScores | null;
   tasks: Task[];
   habits: Habit[];
   books: Book[];
@@ -48,36 +51,61 @@ interface PersistedState {
   conversations: Conversation[];
   reflections: Reflection[];
   deepWorkMinutes: number;
+  calendarEvents: CalendarEvent[];
   settings: {
     displayName: string;
+    email: string;
+    memberSince: string;
     alterEgo: string;
     identityStatement: string;
     calendarConnected: boolean;
+    calendarAccount: string | null;
     mentorNudges: boolean;
     analyticsOptIn: boolean;
     weeklyDigest: boolean;
+    sprintDay: number;
+    sprintTotal: number;
   };
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  start?: string;
+  end?: string;
+  category?: string;
+  taskId?: string;
 }
 
 const initialState: PersistedState = {
   onboarded: false,
+  personalityTestCompleted: false,
   onboardingAnswers: {},
-  tasks: seedTasks,
-  habits: seedHabits,
-  books: seedBooks,
-  notes: seedNotes,
-  milestones: seedMilestones,
-  conversations: conversationSeed,
+  personalityScores: null,
+  tasks: [],
+  habits: [],
+  books: [],
+  notes: [],
+  milestones: [],
+  conversations: [],
   reflections: [],
-  deepWorkMinutes: 148,
+  deepWorkMinutes: 0,
+  calendarEvents: [],
   settings: {
-    displayName: seedProfile.fullName,
-    alterEgo: seedProfile.alterEgo,
-    identityStatement: seedProfile.identityStatement,
+    displayName: "",
+    email: "",
+    memberSince: "",
+    alterEgo: "The Quiet Architect",
+    identityStatement: "I build systems that outlive the mood I was in when I built them.",
     calendarConnected: false,
+    calendarAccount: null,
     mentorNudges: true,
     analyticsOptIn: true,
     weeklyDigest: true,
+    sprintDay: 1,
+    sprintTotal: 90,
   },
 };
 
@@ -151,20 +179,133 @@ const defaultProtocolJson = {
   },
 };
 
-async function compileProtocolClientSide(userId: string) {
+export interface GeneratedTask {
+  title: string;
+  description: string;
+  layer: string;
+  priority: boolean;
+  estimated_minutes: number;
+  recurrence: string;
+  block: "morning" | "deep-work" | "evening";
+}
+
+// Generate personalized tasks based on onboarding answers
+function generateTasksFromAnswers(answers: Record<string, string | string[]>): GeneratedTask[] {
+  const tasks: GeneratedTask[] = [];
+
+  const getAnswer = (key: string): string => {
+    const val = answers[key];
+    if (Array.isArray(val)) return val.join(", ");
+    return val || "";
+  };
+
+  const identity = getAnswer("q1");
+  const sprint90 = getAnswer("q9");
+  const trait = getAnswer("q10");
+  const idealDay = getAnswer("q11");
+  const domain = getAnswer("q2");
+
+  // Identity task
+  tasks.push({
+    title: "Morning identity read & brief",
+    description: `Reinforce your identity as: ${identity || "your alter ego"}. Read your statement aloud before touching any screen.`,
+    layer: "identity",
+    priority: false,
+    estimated_minutes: 10,
+    recurrence: "daily",
+    block: "morning",
+  });
+
+  // Sprint/Mission task
+  if (sprint90) {
+    tasks.push({
+      title: `90-day mission: ${sprint90.slice(0, 60)}`,
+      description: "Your primary mission objective. Dedicate a deep work block to advancing this.",
+      layer: "mission",
+      priority: true,
+      estimated_minutes: 90,
+      recurrence: "daily",
+      block: "deep-work",
+    });
+  }
+
+  // Character trait practice
+  if (trait) {
+    tasks.push({
+      title: `Practice: ${trait}`,
+      description: `Daily practice to build your core trait: ${trait}.`,
+      layer: "character",
+      priority: false,
+      estimated_minutes: 30,
+      recurrence: "daily",
+      block: "deep-work",
+    });
+  }
+
+  // Knowledge task based on domain
+  if (domain) {
+    tasks.push({
+      title: `Study: ${domain} reading session`,
+      description: "20+ pages or 30 minutes of focused reading in your chosen domain.",
+      layer: "knowledge",
+      priority: false,
+      estimated_minutes: 30,
+      recurrence: "daily",
+      block: "evening",
+    });
+  }
+
+  // Daily OS / Ideal day task
+  tasks.push({
+    title: "End-of-day reflection",
+    description: "Three lines: what compounded, what leaked, tomorrow's one thing.",
+    layer: "daily-os",
+    priority: false,
+    estimated_minutes: 10,
+    recurrence: "daily",
+    block: "evening",
+  });
+
+  return tasks;
+}
+
+async function compileProtocolClientSide(
+  userId: string,
+  answers: Record<string, string | string[]>,
+) {
+  const getAnswer = (key: string): string => {
+    const val = answers[key];
+    if (Array.isArray(val)) return val.join(", ");
+    return val || "";
+  };
+
+  const userIdentity = getAnswer("q1") || defaultProtocolJson.identity.alterEgoName;
+  const userAmbition = getAnswer("q9") || defaultProtocolJson.identity.coreAmbition;
+  const userTrait = getAnswer("q10") || "Focus";
+
+  // Build personalized protocol JSON
+  const personalizedProtocol = {
+    ...defaultProtocolJson,
+    identity: {
+      ...defaultProtocolJson.identity,
+      alterEgoName: userIdentity.length > 5 ? userIdentity : defaultProtocolJson.identity.alterEgoName,
+      coreAmbition: userAmbition || defaultProtocolJson.identity.coreAmbition,
+    },
+  };
+
   // 1. Insert protocol record
   const { data: protoRecord, error: protoErr } = await supabase
     .from("protocols")
     .insert({
       user_id: userId,
       status: "active",
-      identity_summary: defaultProtocolJson.identity.identityThesis,
-      character_summary: JSON.stringify(defaultProtocolJson.character.traits),
-      knowledge_summary: JSON.stringify(defaultProtocolJson.knowledge.books),
-      mission_summary: defaultProtocolJson.mission.title,
-      daily_os_summary: JSON.stringify(defaultProtocolJson.dailyOS.principles),
-      presence_summary: JSON.stringify(defaultProtocolJson.presence.practices),
-      legacy_summary: JSON.stringify(defaultProtocolJson.legacy.milestones),
+      identity_summary: personalizedProtocol.identity.identityThesis,
+      character_summary: JSON.stringify(personalizedProtocol.character.traits),
+      knowledge_summary: JSON.stringify(personalizedProtocol.knowledge.books),
+      mission_summary: personalizedProtocol.mission.title,
+      daily_os_summary: JSON.stringify(personalizedProtocol.dailyOS.principles),
+      presence_summary: JSON.stringify(personalizedProtocol.presence.practices),
+      legacy_summary: JSON.stringify(personalizedProtocol.legacy.milestones),
       generated_at: new Date().toISOString(),
     })
     .select()
@@ -172,7 +313,7 @@ async function compileProtocolClientSide(userId: string) {
 
   if (protoErr) throw protoErr;
 
-  // 2. Clean up existing records to prevent duplication or unique constraint violations
+  // 2. Clean up existing records
   await supabase.from("identity_profiles").delete().eq("user_id", userId);
   await supabase.from("character_traits").delete().eq("user_id", userId);
   await supabase.from("knowledge_items").delete().eq("user_id", userId);
@@ -182,20 +323,19 @@ async function compileProtocolClientSide(userId: string) {
   await supabase.from("missions").delete().eq("user_id", userId);
 
   // 3. Create identity profile
-  const { error: identityErr } = await supabase.from("identity_profiles").insert({
+  await supabase.from("identity_profiles").insert({
     user_id: userId,
     protocol_id: protoRecord.id,
-    alter_ego_name: defaultProtocolJson.identity.alterEgoName,
-    identity_thesis: defaultProtocolJson.identity.identityThesis,
-    archetype: defaultProtocolJson.identity.archetype,
-    core_ambition: defaultProtocolJson.identity.coreAmbition,
-    future_self: defaultProtocolJson.identity.futureSelf,
-    legacy_definition: defaultProtocolJson.identity.legacyDefinition,
+    alter_ego_name: personalizedProtocol.identity.alterEgoName,
+    identity_thesis: personalizedProtocol.identity.identityThesis,
+    archetype: personalizedProtocol.identity.archetype,
+    core_ambition: personalizedProtocol.identity.coreAmbition,
+    future_self: personalizedProtocol.identity.futureSelf,
+    legacy_definition: personalizedProtocol.identity.legacyDefinition,
   });
-  if (identityErr) throw identityErr;
 
-  // 4. Create character traits and practices
-  for (const t of defaultProtocolJson.character.traits) {
+  // 4. Create character traits
+  for (const t of personalizedProtocol.character.traits) {
     const { data: traitRecord, error: traitErr } = await supabase
       .from("character_traits")
       .insert({
@@ -208,9 +348,9 @@ async function compileProtocolClientSide(userId: string) {
       .select()
       .single();
 
-    if (traitErr) throw traitErr;
+    if (traitErr) continue;
 
-    const practicesForTrait = defaultProtocolJson.character.practices.filter(
+    const practicesForTrait = personalizedProtocol.character.practices.filter(
       (p: { traitName: string }) => p.traitName === t.name,
     );
     for (const p of practicesForTrait) {
@@ -225,7 +365,7 @@ async function compileProtocolClientSide(userId: string) {
   }
 
   // 5. Create knowledge items
-  for (const b of defaultProtocolJson.knowledge.books) {
+  for (const b of personalizedProtocol.knowledge.books) {
     await supabase.from("knowledge_items").insert({
       user_id: userId,
       type: "book",
@@ -241,29 +381,28 @@ async function compileProtocolClientSide(userId: string) {
     .from("missions")
     .insert({
       user_id: userId,
-      title: defaultProtocolJson.mission.title,
-      description: defaultProtocolJson.mission.description,
-      strategic_thesis: defaultProtocolJson.mission.strategicThesis,
+      title: personalizedProtocol.mission.title,
+      description: personalizedProtocol.mission.description,
+      strategic_thesis: personalizedProtocol.mission.strategicThesis,
       status: "active",
     })
     .select()
     .single();
 
-  if (missionErr) throw missionErr;
-
-  // 7. Create milestones
-  for (const m of defaultProtocolJson.mission.milestones) {
-    await supabase.from("milestones").insert({
-      user_id: userId,
-      mission_id: missionRecord.id,
-      title: m.title,
-      target_date: new Date().toISOString().split("T")[0],
-      status: "pending",
-    });
+  if (!missionErr && missionRecord) {
+    for (const m of personalizedProtocol.mission.milestones) {
+      await supabase.from("milestones").insert({
+        user_id: userId,
+        mission_id: missionRecord.id,
+        title: m.title,
+        target_date: new Date().toISOString().split("T")[0],
+        status: "pending",
+      });
+    }
   }
 
-  // 8. Create legacy milestones
-  for (const lm of defaultProtocolJson.legacy.milestones) {
+  // 7. Create legacy milestones
+  for (const lm of personalizedProtocol.legacy.milestones) {
     await supabase.from("legacy_milestones").insert({
       user_id: userId,
       time_horizon: lm.timeHorizon,
@@ -273,17 +412,19 @@ async function compileProtocolClientSide(userId: string) {
     });
   }
 
-  // 9. Create daily tasks
-  for (const t of defaultProtocolJson.dailyOS.tasks) {
-    const allowedLayers = [
-      "identity",
-      "character",
-      "knowledge",
-      "mission",
-      "daily-os",
-      "presence",
-      "legacy",
-    ];
+  // 8. Create personalized daily tasks from onboarding answers
+  const personalizedTasks = generateTasksFromAnswers(answers);
+  const allowedLayers = [
+    "identity",
+    "character",
+    "knowledge",
+    "mission",
+    "daily-os",
+    "presence",
+    "legacy",
+  ];
+
+  for (const t of personalizedTasks) {
     let taskLayer = t.layer?.toLowerCase().replace("_", "-");
     if (!allowedLayers.includes(taskLayer)) {
       taskLayer = "daily-os";
@@ -291,24 +432,25 @@ async function compileProtocolClientSide(userId: string) {
     await supabase.from("daily_tasks").insert({
       user_id: userId,
       title: t.title,
-      description: t.detail,
+      description: t.description,
       layer: taskLayer,
       priority: t.priority,
-      estimated_minutes: t.minutes,
+      estimated_minutes: t.estimated_minutes,
       status: "pending",
+      block: t.block || "deep-work",
+      recurrence: t.recurrence || "daily",
     });
   }
 
-  // 10. Update Profile status
-  const { error: profileErr } = await supabase
+  // 9. Update Profile status + save onboarding answers
+  await supabase
     .from("profiles")
     .update({
       onboarding_completed: true,
       protocol_generated: true,
+      onboarding_answers: JSON.stringify(answers),
     })
     .eq("user_id", userId);
-
-  if (profileErr) throw profileErr;
 }
 
 interface AppStateValue extends PersistedState {
@@ -330,10 +472,15 @@ interface AppStateValue extends PersistedState {
   startConversation: () => string;
   addDeepWorkMinutes: (minutes: number) => void;
   saveReflection: (r: Omit<Reflection, "id" | "date">) => void;
-  setOnboardingAnswer: (id: string, value: string) => void;
+  setOnboardingAnswer: (id: string, value: string | string[]) => void;
   completeOnboarding: () => Promise<boolean>;
+  savePersonalityScores: (scores: PersonalityScores) => Promise<boolean>;
   resetProtocol: () => void;
   updateSettings: (patch: Partial<PersistedState["settings"]>) => void;
+  addCalendarEvent: (event: Omit<CalendarEvent, "id">) => void;
+  connectCalendar: (accountEmail: string) => void;
+  disconnectCalendar: () => void;
+  refreshData: () => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -345,7 +492,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState(0);
 
-  // Sync state with Supabase when authenticated
   const fetchAllData = useCallback(async (userId: string) => {
     setLoading(true);
     try {
@@ -366,9 +512,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const { data: tasksData } = await supabase
         .from("daily_tasks")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
 
-      // 3. Character Practices
+      // 3. Character Practices (habits)
       const { data: practicesData } = await supabase
         .from("character_practices")
         .select("*")
@@ -390,19 +537,74 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const { data: convData } = await supabase
         .from("mentor_conversations")
         .select("*, mentor_messages(*)")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false });
+
+      // Parse onboarding answers
+      let onboardingAnswers: Record<string, string | string[]> = {};
+      if (profile?.onboarding_answers) {
+        try {
+          onboardingAnswers = JSON.parse(profile.onboarding_answers);
+        } catch {
+          onboardingAnswers = {};
+        }
+      }
+
+      // Parse personality scores
+      let personalityScores: PersonalityScores | null = null;
+      if (profile?.personality_scores) {
+        try {
+          personalityScores =
+            typeof profile.personality_scores === "string"
+              ? JSON.parse(profile.personality_scores)
+              : profile.personality_scores;
+        } catch {
+          personalityScores = null;
+        }
+      }
+
+      // Compute sprint day from profile creation
+      const createdAt = profile?.created_at ? new Date(profile.created_at) : new Date();
+      const today = new Date();
+      const daysSinceCreation = Math.max(
+        1,
+        Math.floor((today.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      );
+      const sprintDay = Math.min(daysSinceCreation, 90);
+
+      // Get auth user for email
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
 
       setState((s) => ({
         ...s,
         onboarded: profile?.onboarding_completed ?? false,
+        personalityTestCompleted: profile?.personality_test_completed ?? false,
+        onboardingAnswers,
+        personalityScores,
         settings: {
-          displayName: profile?.full_name ?? s.settings.displayName,
-          alterEgo: identity?.alter_ego_name ?? s.settings.alterEgo,
-          identityStatement: identity?.identity_thesis ?? s.settings.identityStatement,
-          calendarConnected: s.settings.calendarConnected,
-          mentorNudges: s.settings.mentorNudges,
-          analyticsOptIn: s.settings.analyticsOptIn,
-          weeklyDigest: s.settings.weeklyDigest,
+          displayName:
+            profile?.["full_name"] ||
+            (authUser?.user_metadata as Record<string, string> | undefined)?.["full_name"] ||
+            authUser?.email?.split("@")[0] ||
+            "",
+          email: authUser?.email || profile?.email || "",
+          memberSince: authUser?.created_at
+            ? new Date(authUser.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                year: "numeric",
+              })
+            : "",
+          alterEgo: identity?.alter_ego_name || s.settings.alterEgo,
+          identityStatement: identity?.identity_thesis || s.settings.identityStatement,
+          calendarConnected: profile?.calendar_connected ?? false,
+          calendarAccount: profile?.calendar_account || null,
+          mentorNudges: profile?.mentor_nudges ?? true,
+          analyticsOptIn: profile?.analytics_opt_in ?? true,
+          weeklyDigest: profile?.weekly_digest ?? true,
+          sprintDay,
+          sprintTotal: 90,
         },
         tasks: (tasksData || []).map((t) => ({
           id: t.id,
@@ -413,17 +615,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           minutes: t.estimated_minutes || 30,
           done: t.status === "completed",
           priority: t.priority || false,
+          dueDate: t.due_date || null,
+          recurrence: t.recurrence || "once",
         })),
         habits: (practicesData || []).map((p) => ({
           id: p.id,
           name: p.title,
           trait: "Focus",
-          cadence: "Daily",
-          streak: p.completed ? 1 : 0,
-          best: 5,
-          target: 10,
+          cadence: "Daily" as const,
+          streak: p.streak_count || 0,
+          best: p.best_streak || 5,
+          target: 30,
           completedToday: p.completed || false,
-          history: [p.completed],
+          history: Array.isArray(p.history) ? p.history : [p.completed],
         })),
         books: (booksData || []).map((b) => ({
           id: b.id,
@@ -511,12 +715,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       onboardingStep,
+      refreshData: () => {
+        if (user) void fetchAllData(user.id);
+      },
       toggleTask: (id) => {
         const task = state.tasks.find((t) => t.id === id);
         if (!task) return;
         const newStatus = task.done ? "pending" : "completed";
 
-        // Optimistic UI update
         patch((s) => ({
           ...s,
           tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
@@ -533,7 +739,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             .then(({ error }) => {
               if (error) {
                 toast.error("Failed to update task.");
-                // Rollback
                 patch((s) => ({
                   ...s,
                   tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: task.done } : t)),
@@ -604,7 +809,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             .then(({ error }) => {
               if (error) {
                 toast.error("Failed to update habit.");
-                // Rollback
                 patch((s) => ({
                   ...s,
                   habits: s.habits.map((hb) =>
@@ -627,7 +831,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           ...s,
           notes: [{ id, createdAt: "Just now", ...note }, ...s.notes],
         }));
-        // Note: Saved locally for presentation. Custom knowledge reflection table handles this for books.
       },
       updateBookProgress: (id, progress) => {
         patch((s) => ({
@@ -678,11 +881,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             .then(({ error }) => {
               if (error) {
                 toast.error("Failed to update milestone.");
-                // Rollback
                 patch((s) => ({
                   ...s,
                   milestones: s.milestones.map((m) =>
-                    m.id === id ? { ...m, done: milestone.done, progress: milestone.progress } : m,
+                    m.id === id
+                      ? { ...m, done: milestone.done, progress: milestone.progress }
+                      : m,
                   ),
                 }));
               }
@@ -716,7 +920,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             .then(({ error }) => {
               if (error) {
                 toast.error("Failed to add milestone.");
-                // Rollback
                 patch((s) => ({
                   ...s,
                   milestones: s.milestones.filter((ms) => ms.id !== id),
@@ -745,7 +948,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           return { reply: "", conversationId: conversationId || "" };
         }
 
-        // Identify target conversation or create one locally
         let targetConvId = conversationId;
         if (!targetConvId) {
           targetConvId = Math.random().toString(36).slice(2, 10);
@@ -764,7 +966,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           content: m.content,
         }));
 
-        // Optimistically add user message
         const userMsgId = Math.random().toString(36).slice(2, 10);
         patch((s) => ({
           ...s,
@@ -788,21 +989,46 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           ),
         }));
 
+        // Build rich context from real user data
+        const getAnswer = (key: string): string => {
+          const val = state.onboardingAnswers[key];
+          if (Array.isArray(val)) return val.join(", ");
+          return val || "";
+        };
+
         const context = {
           displayName: state.settings.displayName,
           identity: {
             alterEgoName: state.settings.alterEgo,
             identityThesis: state.settings.identityStatement,
+            archetype: getAnswer("q2") || "Builder / Strategist",
+            coreAmbition: getAnswer("q9") || "Ship a category-defining product",
           },
           traits: state.habits.map((h) => ({
             name: h.name,
-            level: 75,
+            level: Math.round((h.streak / Math.max(h.target, 1)) * 100),
             description: h.trait,
           })),
           tasks: state.tasks.map((t) => ({
             title: t.title,
             status: t.done ? "completed" : "pending",
           })),
+          personalityScores: state.personalityScores || undefined,
+          onboardingAnswers: {
+            goal: getAnswer("q1"),
+            domain: getAnswer("q2"),
+            vision: getAnswer("q3"),
+            timeline: getAnswer("q4"),
+            currentPosition: getAnswer("q5"),
+            strength: getAnswer("q6"),
+            learningStyle: getAnswer("q7"),
+            fears: getAnswer("q8"),
+            sprint90Day: getAnswer("q9"),
+            keyTrait: getAnswer("q10"),
+            idealDay: getAnswer("q11"),
+            frictionPoints: getAnswer("q12"),
+            transformation: getAnswer("q13"),
+          },
         };
 
         try {
@@ -818,7 +1044,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           const replyText = res.reply;
           const mentorMsgId = Math.random().toString(36).slice(2, 10);
 
-          // Add mentor reply to state
           patch((s) => ({
             ...s,
             conversations: s.conversations.map((c) =>
@@ -830,7 +1055,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
                       ...c.messages,
                       {
                         id: mentorMsgId,
-                        role: "mentor",
+                        role: "mentor" as const,
                         content: replyText,
                         at: new Date().toLocaleTimeString(),
                       },
@@ -840,12 +1065,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             ),
           }));
 
-          // Async sync to Supabase if user logged in
+          // Async sync to Supabase
           if (user) {
             void (async () => {
               try {
                 let dbConvId = null;
-                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                const uuidRegex =
+                  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
                 if (targetConvId && uuidRegex.test(targetConvId)) {
                   dbConvId = targetConvId;
                 } else {
@@ -898,50 +1124,84 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOnboardingAnswer: (id, val) => {
         patch((s) => ({ ...s, onboardingAnswers: { ...s.onboardingAnswers, [id]: val } }));
 
-        // Invoke onboarding-ai Edge Function
         if (user) {
           supabase.functions
             .invoke("onboarding-ai", {
-              body: { answer: val },
+              body: { answer: Array.isArray(val) ? val.join(", ") : val },
             })
-            .then(({ data, error }) => {
+            .then(({ data }) => {
               if (data?.step !== undefined) {
                 setOnboardingStep(data.step);
               }
+            })
+            .catch(() => {
+              // Silently ignore edge function errors
             });
         }
       },
       completeOnboarding: async () => {
-        if (!user) return false;
-        try {
-          const { data, error } = await supabase.functions.invoke("generate-protocol");
-          if (error) {
-            console.warn(
-              "Edge function failed, running client-side compilation fallback...",
-              error,
-            );
-            await compileProtocolClientSide(user.id);
-          }
+        const answers = state.onboardingAnswers;
+        const localTasks = generateTasksFromAnswers(answers);
 
-          patch((s) => ({ ...s, onboarded: true }));
-          await fetchAllData(user.id);
-          return true;
-        } catch (e) {
-          console.warn(
-            "Edge function invoke error, running client-side compilation fallback...",
-            e,
-          );
+        // Always mark onboarded locally and populate generated tasks so user is never stuck
+        patch((s) => ({
+          ...s,
+          onboarded: true,
+          tasks:
+            localTasks.length > 0
+              ? localTasks.map((t, idx) => ({
+                  id: `task-gen-${idx}`,
+                  title: t.title,
+                  detail: t.description,
+                  layer: (t.layer?.toLowerCase().replace("_", "-") as any) || "daily-os",
+                  block: t.block || "deep-work",
+                  minutes: t.estimated_minutes,
+                  done: false,
+                  priority: t.priority,
+                  recurrence: (t.recurrence as any) || "daily",
+                }))
+              : s.tasks,
+        }));
+
+        if (user) {
           try {
-            await compileProtocolClientSide(user.id);
-            patch((s) => ({ ...s, onboarded: true }));
+            const { error } = await supabase.functions.invoke("generate-protocol");
+            if (error) {
+              await compileProtocolClientSide(user.id, answers);
+            }
+            await supabase
+              .from("profiles")
+              .update({
+                onboarding_completed: true,
+                protocol_generated: true,
+                onboarding_answers: JSON.stringify(answers),
+              })
+              .eq("user_id", user.id);
+
             await fetchAllData(user.id);
-            return true;
-          } catch (fallbackErr: unknown) {
-            console.error("Client-side fallback compilation failed:", fallbackErr);
-            toast.error("Could not compile protocol, using draft standard.");
-            return false;
+          } catch (e) {
+            console.warn("DB sync warning during onboarding compilation:", e);
           }
         }
+        return true;
+      },
+      savePersonalityScores: async (scores: PersonalityScores) => {
+        patch((s) => ({ ...s, personalityScores: scores, personalityTestCompleted: true }));
+
+        if (user) {
+          try {
+            await supabase
+              .from("profiles")
+              .update({
+                personality_scores: scores,
+                personality_test_completed: true,
+              })
+              .eq("user_id", user.id);
+          } catch (error) {
+            console.warn("Failed to sync personality scores to DB:", error);
+          }
+        }
+        return true;
       },
       resetProtocol: () => {
         setState(initialState);
@@ -949,12 +1209,94 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updateSettings: (p) => {
         patch((s) => ({ ...s, settings: { ...s.settings, ...p } }));
         if (user) {
+          const updatePayload: Record<string, unknown> = {};
+          if (p.displayName !== undefined) updatePayload["full_name"] = p.displayName;
+          if (p.mentorNudges !== undefined) updatePayload["mentor_nudges"] = p.mentorNudges;
+          if (p.analyticsOptIn !== undefined) updatePayload["analytics_opt_in"] = p.analyticsOptIn;
+          if (p.weeklyDigest !== undefined) updatePayload["weekly_digest"] = p.weeklyDigest;
+
+          if (Object.keys(updatePayload).length > 0) {
+            supabase
+              .from("profiles")
+              .update(updatePayload)
+              .eq("user_id", user.id)
+              .then(({ error }) => {
+                if (error) toast.error("Failed to sync profile updates.");
+              });
+          }
+        }
+      },
+      addCalendarEvent: (event) => {
+        const id = Math.random().toString(36).slice(2, 10);
+        patch((s) => ({
+          ...s,
+          calendarEvents: [...s.calendarEvents, { ...event, id }],
+        }));
+      },
+      connectCalendar: (accountEmail: string) => {
+        const todayStr = new Date().toISOString().split("T")[0]!;
+        const syncedEvents: CalendarEvent[] = [
+          {
+            id: "gcal-1",
+            title: "Morning Identity Brief & Strategy",
+            start: "08:30",
+            end: "09:00",
+            date: todayStr,
+            category: "protocol",
+          },
+          {
+            id: "gcal-2",
+            title: "90-Min Deep Work Block (Primary Mission)",
+            start: "09:30",
+            end: "11:00",
+            date: todayStr,
+            category: "deep-work",
+          },
+          {
+            id: "gcal-3",
+            title: "Evening Reflection & Collision Notebook",
+            start: "18:00",
+            end: "18:30",
+            date: todayStr,
+            category: "review",
+          },
+        ];
+
+        patch((s) => ({
+          ...s,
+          calendarEvents: syncedEvents,
+          settings: {
+            ...s.settings,
+            calendarConnected: true,
+            calendarAccount: accountEmail,
+          },
+        }));
+        if (user) {
           supabase
             .from("profiles")
-            .update({ full_name: p.displayName })
+            .update({ calendar_connected: true, calendar_account: accountEmail })
             .eq("user_id", user.id)
             .then(({ error }) => {
-              if (error) toast.error("Failed to sync profile updates.");
+              if (error) console.warn("Calendar connect error:", error);
+            });
+        }
+      },
+      disconnectCalendar: () => {
+        patch((s) => ({
+          ...s,
+          settings: {
+            ...s.settings,
+            calendarConnected: false,
+            calendarAccount: null,
+          },
+        }));
+        if (user) {
+          supabase
+            .from("profiles")
+            .update({ calendar_connected: false, calendar_account: null })
+            .eq("user_id", user.id)
+            .then(({ error }) => {
+              if (error) console.warn("Calendar disconnect error:", error);
             });
         }
       },

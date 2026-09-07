@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Pause, Play, RotateCcw, Sparkles, Sunrise, Moon } from "lucide-react";
+import { Check, Pause, Play, RotateCcw, Sparkles, Sunrise, Moon, CalendarDays } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,7 +10,6 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppState } from "@/lib/app-state";
-import { morningBrief, sprint } from "@/lib/mock-data";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -101,13 +100,33 @@ function DeepWorkTimer() {
 }
 
 function DailyOS() {
-  const { tasks, habits, toggleTask, toggleHabit, addTask, saveReflection, reflections } =
+  const { tasks, habits, toggleTask, toggleHabit, addTask, saveReflection, reflections, settings, onboardingAnswers, calendarEvents } =
     useAppState();
   const { t } = useLanguage();
   const [newTask, setNewTask] = useState("");
   const [form, setForm] = useState({ compounded: "", leaked: "", tomorrow: "" });
   const [saving, setSaving] = useState(false);
   const done = tasks.filter((t) => t.done).length;
+
+  const sprintDay = settings.sprintDay || 1;
+  const sprintTotal = settings.sprintTotal || 90;
+
+  const getAnswer = (key: string): string => {
+    const val = onboardingAnswers[key];
+    if (Array.isArray(val)) return val.join(", ");
+    return val || "";
+  };
+
+  const userGoal = getAnswer("q9") || getAnswer("q1");
+  const userFears = getAnswer("q8");
+
+  const dynamicBriefHeadline = userGoal
+    ? `Today's Focus: ${userGoal.slice(0, 60)}${userGoal.length > 60 ? "..." : ""}`
+    : "Today is a shipping day, not a planning day.";
+
+  const dynamicBriefBody = userFears
+    ? `Override your friction pattern ("${userFears.slice(0, 80)}") with your morning deep work block.`
+    : "Run the protocol. Brief, blocks, practices, reflection. The day is already designed.";
 
   async function submitReflection() {
     if (!form.compounded.trim()) {
@@ -125,7 +144,7 @@ function DailyOS() {
   return (
     <AppShell>
       <PageHeader
-        eyebrow={`${t("dashboard_day_info", "Day")} ${sprint.day} ${t("dashboard_of", "of")} ${sprint.total}`}
+        eyebrow={`${t("dashboard_day_info", "Day")} ${sprintDay} ${t("dashboard_of", "of")} ${sprintTotal}`}
         title={t("daily_title", "Daily Operating System")}
         description={t("daily_description", "Run the protocol one day at a time. Brief, blocks, practices, reflection.")}
       />
@@ -136,8 +155,8 @@ function DailyOS() {
         </span>
         <div>
           <p className="label-eyebrow">{t("morning_brief", "Morning brief")}</p>
-          <p className="mt-1.5 font-display text-xl leading-snug">{t("brief_headline", morningBrief.headline)}</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("brief_body", morningBrief.body)}</p>
+          <p className="mt-1.5 font-display text-xl leading-snug">{dynamicBriefHeadline}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{dynamicBriefBody}</p>
         </div>
       </div>
 
@@ -283,6 +302,58 @@ function DailyOS() {
 
         <div className="space-y-5">
           <DeepWorkTimer />
+
+          {/* Google Calendar Synced Events */}
+          <section className="card-surface p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="size-4 text-accent" />
+                <p className="label-eyebrow">{t("settings_calendar", "Google Calendar")}</p>
+              </div>
+              {settings.calendarConnected && (
+                <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success">
+                  Synced
+                </span>
+              )}
+            </div>
+
+            {settings.calendarConnected ? (
+              <div className="mt-4 space-y-2.5">
+                {calendarEvents.length > 0 ? (
+                  calendarEvents.slice(0, 4).map((evt) => (
+                    <div key={evt.id} className="flex items-center justify-between rounded-xl border border-border bg-surface p-3 text-xs">
+                      <div>
+                        <p className="font-medium text-foreground">{evt.title}</p>
+                        <p className="text-[11px] text-muted-foreground">{evt.start} – {evt.end}</p>
+                      </div>
+                      <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent capitalize">
+                        {evt.category || "sync"}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t("daily_calendar_sync_empty", "Calendar connected. Tasks sync automatically.")}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 text-center">
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {t("settings_calendar_not_connected", "Not connected. Connect to sync deep work blocks and the weekly review.")}
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => toast.info(t("settings_connect_calendar_hint", "Go to Profile & Settings to connect Google Calendar."))}
+                >
+                  <CalendarDays className="size-3.5" />
+                  {t("settings_connect_calendar", "Connect Calendar")}
+                </Button>
+              </div>
+            )}
+          </section>
 
           <section className="card-surface p-6">
             <div className="flex items-center gap-2">
