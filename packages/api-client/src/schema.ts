@@ -76,6 +76,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/interviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Begin the interview, or resume the one in progress. */
+        post: operations["interviews_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interviews/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Finish the interview and start protocol generation (async when a broker is set). */
+        post: operations["interviews_complete_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interviews/{id}/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["interviews_turns_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interviews/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["interviews_current_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -111,10 +177,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/protocols/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["protocols_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/protocols/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Progress stream: `section.ready`, `progress`, `done`, `error`. Resume with Last-Event-ID. */
+        get: operations["protocols_events_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/protocols/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["protocols_pdf_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/protocols/{id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["protocols_rating_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/protocols/{id}/sections/{key}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Revise one section through conversation. Other sections are not regenerated. */
+        post: operations["protocols_sections_revise_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/protocols/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["protocols_latest_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AnswerRequestRequest: {
+            answer: string;
+        };
+        CompleteResponse: {
+            /** Format: uuid */
+            protocol_id: string;
+        };
         Consent: {
             readonly id: number;
             readonly purpose: components["schemas"]["PurposeEnum"];
@@ -140,6 +311,17 @@ export interface components {
          * @enum {string}
          */
         EntitlementsEnum: "protocol" | "daily_os" | "character" | "knowledge" | "mentor" | "presence" | "legacy" | "calendar";
+        InterviewStep: {
+            /** Format: uuid */
+            interview_id: string;
+            status: string;
+            answered_count: number;
+            question: components["schemas"]["Question"] | null;
+            acknowledgement: string;
+            /** Format: double */
+            progress: number;
+            done: boolean;
+        };
         LogoutRequest: {
             refresh: string;
         };
@@ -163,6 +345,30 @@ export interface components {
             locale?: string;
             ai_training_opt_out?: boolean;
         };
+        Protocol: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly status: components["schemas"]["StatusEnum"];
+            readonly schema_version: string;
+            readonly failure_code: string;
+            readonly accuracy_rating: number | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly completed_at: string | null;
+            readonly expected_sections: string[];
+            readonly sections: components["schemas"]["ProtocolSection"][];
+            readonly document: {
+                [key: string]: unknown;
+            } | null;
+        };
+        ProtocolSection: {
+            readonly key: string;
+            readonly revision: number;
+            content: unknown;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
         /**
          * @description * `terms` - Terms
          *     * `privacy` - Privacy
@@ -172,6 +378,18 @@ export interface components {
          * @enum {string}
          */
         PurposeEnum: "terms" | "privacy" | "ai_processing" | "analytics" | "marketing";
+        Question: {
+            readonly idx: number;
+            readonly stage: string;
+            readonly question: string;
+            readonly suggestions: string[];
+            readonly multi_select: boolean;
+            readonly placeholder: string;
+        };
+        RatingRequestRequest: {
+            score: number;
+            comment?: string;
+        };
         RegisterRequest: {
             /** Format: email */
             email: string;
@@ -185,6 +403,16 @@ export interface components {
             access: string;
             refresh: string;
         };
+        ReviseRequestRequest: {
+            instruction: string;
+        };
+        /**
+         * @description * `generating` - Generating
+         *     * `ready` - Ready
+         *     * `failed` - Failed
+         * @enum {string}
+         */
+        StatusEnum: "generating" | "ready" | "failed";
         /**
          * @description * `core` - core
          *     * `full` - full
@@ -314,6 +542,92 @@ export interface operations {
             };
         };
     };
+    interviews_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewStep"];
+                };
+            };
+        };
+    };
+    interviews_complete_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompleteResponse"];
+                };
+            };
+        };
+    };
+    interviews_turns_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AnswerRequestRequest"];
+                "multipart/form-data": components["schemas"]["AnswerRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewStep"];
+                };
+            };
+        };
+    };
+    interviews_current_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewStep"];
+                };
+            };
+        };
+    };
     me_retrieve: {
         parameters: {
             query?: never;
@@ -416,6 +730,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Consent"];
+                };
+            };
+        };
+    };
+    protocols_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Protocol"];
+                };
+            };
+        };
+    };
+    protocols_events_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+        };
+    };
+    protocols_pdf_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+        };
+    };
+    protocols_rating_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RatingRequestRequest"];
+                "multipart/form-data": components["schemas"]["RatingRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    protocols_sections_revise_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviseRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReviseRequestRequest"];
+                "multipart/form-data": components["schemas"]["ReviseRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProtocolSection"];
+                };
+            };
+        };
+    };
+    protocols_latest_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Protocol"];
                 };
             };
         };

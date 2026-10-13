@@ -15,6 +15,8 @@ execFileSync(python, ["manage.py", "spectacular", "--file", out, "--validate", "
   env: {
     DJANGO_SECRET_KEY: "schema-generation-only",
     DATABASE_URL: "sqlite:///:memory:",
+    // Schema generation never touches data; this key is a throwaway.
+    FIELD_ENCRYPTION_KEYS: "schema:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     ...process.env,
   },
 });

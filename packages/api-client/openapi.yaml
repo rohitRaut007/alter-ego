@@ -104,6 +104,91 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+  /api/v1/interviews:
+    post:
+      operationId: interviews_create
+      description: Begin the interview, or resume the one in progress.
+      tags:
+      - interviews
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewStep'
+          description: ''
+  /api/v1/interviews/{id}/complete:
+    post:
+      operationId: interviews_complete_create
+      description: Finish the interview and start protocol generation (async when
+        a broker is set).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - interviews
+      security:
+      - jwtAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteResponse'
+          description: ''
+  /api/v1/interviews/{id}/turns:
+    post:
+      operationId: interviews_turns_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - interviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AnswerRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AnswerRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewStep'
+          description: ''
+  /api/v1/interviews/current:
+    get:
+      operationId: interviews_current_retrieve
+      tags:
+      - interviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewStep'
+          description: ''
   /api/v1/me:
     get:
       operationId: me_retrieve
@@ -195,8 +280,174 @@ paths:
               schema:
                 $ref: '#/components/schemas/Consent'
           description: ''
+  /api/v1/protocols/{id}:
+    get:
+      operationId: protocols_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - protocols
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Protocol'
+          description: ''
+  /api/v1/protocols/{id}/events:
+    get:
+      operationId: protocols_events_retrieve
+      description: 'Progress stream: `section.ready`, `progress`, `done`, `error`.
+        Resume with Last-Event-ID.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - protocols
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: ''
+  /api/v1/protocols/{id}/pdf:
+    get:
+      operationId: protocols_pdf_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - protocols
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/protocols/{id}/rating:
+    post:
+      operationId: protocols_rating_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - protocols
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RatingRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RatingRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/protocols/{id}/sections/{key}/revise:
+    post:
+      operationId: protocols_sections_revise_create
+      description: Revise one section through conversation. Other sections are not
+        regenerated.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - protocols
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviseRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviseRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviseRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtocolSection'
+          description: ''
+  /api/v1/protocols/latest:
+    get:
+      operationId: protocols_latest_retrieve
+      tags:
+      - protocols
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Protocol'
+          description: ''
 components:
   schemas:
+    AnswerRequestRequest:
+      type: object
+      properties:
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 4000
+      required:
+      - answer
+    CompleteResponse:
+      type: object
+      properties:
+        protocol_id:
+          type: string
+          format: uuid
+      required:
+      - protocol_id
     Consent:
       type: object
       properties:
@@ -258,6 +509,35 @@ components:
         * `presence` - presence
         * `legacy` - legacy
         * `calendar` - calendar
+    InterviewStep:
+      type: object
+      properties:
+        interview_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        answered_count:
+          type: integer
+        question:
+          allOf:
+          - $ref: '#/components/schemas/Question'
+          nullable: true
+        acknowledgement:
+          type: string
+        progress:
+          type: number
+          format: double
+        done:
+          type: boolean
+      required:
+      - acknowledgement
+      - answered_count
+      - done
+      - interview_id
+      - progress
+      - question
+      - status
     LogoutRequest:
       type: object
       properties:
@@ -323,6 +603,81 @@ components:
           maxLength: 8
         ai_training_opt_out:
           type: boolean
+    Protocol:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        schema_version:
+          type: string
+          readOnly: true
+        failure_code:
+          type: string
+          readOnly: true
+        accuracy_rating:
+          type: integer
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expected_sections:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProtocolSection'
+          readOnly: true
+        document:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+      required:
+      - accuracy_rating
+      - completed_at
+      - created_at
+      - document
+      - expected_sections
+      - failure_code
+      - id
+      - schema_version
+      - sections
+      - status
+    ProtocolSection:
+      type: object
+      properties:
+        key:
+          type: string
+          readOnly: true
+        revision:
+          type: integer
+          readOnly: true
+        content: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - key
+      - revision
     PurposeEnum:
       enum:
       - terms
@@ -337,6 +692,48 @@ components:
         * `ai_processing` - Ai Processing
         * `analytics` - Analytics
         * `marketing` - Marketing
+    Question:
+      type: object
+      properties:
+        idx:
+          type: integer
+          readOnly: true
+        stage:
+          type: string
+          readOnly: true
+        question:
+          type: string
+          readOnly: true
+        suggestions:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        multi_select:
+          type: boolean
+          readOnly: true
+        placeholder:
+          type: string
+          readOnly: true
+      required:
+      - idx
+      - multi_select
+      - placeholder
+      - question
+      - stage
+      - suggestions
+    RatingRequestRequest:
+      type: object
+      properties:
+        score:
+          type: integer
+          maximum: 5
+          minimum: 1
+        comment:
+          type: string
+          maxLength: 1000
+      required:
+      - score
     RegisterRequest:
       type: object
       properties:
@@ -376,6 +773,25 @@ components:
       - access
       - refresh
       - user
+    ReviseRequestRequest:
+      type: object
+      properties:
+        instruction:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required:
+      - instruction
+    StatusEnum:
+      enum:
+      - generating
+      - ready
+      - failed
+      type: string
+      description: |-
+        * `generating` - Generating
+        * `ready` - Ready
+        * `failed` - Failed
     TierEnum:
       enum:
       - core
