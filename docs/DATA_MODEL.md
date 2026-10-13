@@ -87,3 +87,10 @@ erDiagram
 - `llm_usage` records task, model, prompt version and token counts only (no content).
 - Revisions are append-only rows; the highest `revision` per `(protocol, key)` is current.
 - `checklist_30` is stored as a section wrapper `{tasks: [...]}`; the assembled document exposes the bare list.
+
+## Phase 3 as built
+- `daily_os.sprint` (one per protocol), `daily_os.task` (materialised from `checklist_30` and `sprint_90`; `due_date = sprint start + due_day`, so Day 1 is due tomorrow; titles and details encrypted), `daily_os.dailyreflection` (answers encrypted, one per local day), `daily_os.deepworksession` (partial unique index: one running session per user), `daily_os.weeklyritual` (answers encrypted, one per week).
+- `character.trait`, `character.practice` (materialised from the character section; archived rather than deleted when they carry history), `character.practicelog` (unique per practice and day), `character.traitrating` (day 0/14/30, the north-star measurement), `character.traitreflection` (monthly).
+- `safety.safetyevent` (user, surface, category, time; no content).
+- Streaks are derived from `practicelog`, never stored.
+- Materialisation runs when a protocol becomes ready and after revisions of `character`, `checklist_30` or `sprint_90`; it is idempotent and never touches completion state.

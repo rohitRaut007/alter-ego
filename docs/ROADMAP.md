@@ -60,3 +60,6 @@ North star (trait or habit change within 30 days) is instrumented from Phase 3 (
 ## Status
 - **Phase 1 Foundation: done** (auth, consent ledger, entitlements, generated client, CI).
 - **Phase 2 Onboarding and protocol: built against a fake LLM.** Interview, async generation with validation and retry, SSE section reveal, per-section revision, PDF export, accuracy rating and Django-admin review queue all work end to end. Not done: a real model provider (blocked on persona and model id), the safety boundary (Phase 4), interview quality tuning against real answers, and the 20-user accuracy test, which needs the real provider.
+
+- **Phase 3 Daily OS and Character: built (web)** with the safety boundary pulled forward from Phase 4. Brief, plan, tasks, practices with streaks, deep work timer, evening reflection, Sunday ritual and trait check-ins work end to end. The brief is rule-based (no model); the mentor-written brief arrives with Phase 4.
+- **Gate still open:** a qualified human must review the crisis resource list and the classifier before any real user touches the product.

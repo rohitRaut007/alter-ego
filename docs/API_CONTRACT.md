@@ -70,3 +70,24 @@ Base path `/api/v1`. JSON, `snake_case`. Auth: `Authorization: Bearer <access>`.
 
 ## Phase 2 as built
 Added to the contract above: `GET /interviews/current` (resume), `GET /protocols/latest`. `POST /interviews` returns 201 and resumes an open interview instead of creating a second one. `POST /interviews/{id}/turns` returns `{question | null, acknowledgement, progress, done}`; `POST /interviews/{id}/complete` returns 202 and is idempotent. `POST /protocols/{id}/sections/{key}/revise` returns the new revision, 409 for unknown sections or protocols that are not ready, and 422 when the revised output fails validation after retries. `POST /protocols/{id}/rating` returns 204. Interview and protocol endpoints require the `protocol` entitlement (403 `entitlement_required`). The OpenAPI file is the authority; the typed client is generated from it.
+
+## Phase 3 as built
+Entitlement `daily_os` gates `/daily/*`, `/sprints/*`, `/tasks*`, `/reflections`, `/deep-work/*`, `/weekly-ritual`; `character` gates `/traits*` and `/practices/*`. All return 404 `{detail}` until a protocol is ready. Dates are the user's local date (profile timezone).
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/daily/brief?date=` | Tone, headline, factual week insight, focus tasks, practices, schedule, deep work minutes, ritual state |
+| GET | `/sprints/current` | Weeks with tasks and progress, 30-day checklist, day number |
+| GET | `/tasks?from=&to=&layer=&done=` | Active tasks |
+| PATCH | `/tasks/{id}` | `{done}`; idempotent |
+| POST | `/practices/{id}/logs` | `{date?, done}`; today or yesterday only |
+| GET | `/traits` | Practices with streak, 14-day history, ratings, `rating_due_offset`, monthly reflection state |
+| POST | `/traits/{id}/ratings` | `{day_offset: 0|14|30, score 1-5, note?}`; 409 if already recorded |
+| POST | `/traits/{id}/reflections` | `{text}`; one per trait per month, upsert |
+| GET/POST | `/reflections` | Three evening questions plus optional rating; today or yesterday |
+| POST | `/deep-work/sessions` | `{planned_minutes 5-240, task_id?}`; 409 when one is running |
+| GET | `/deep-work/sessions/active` | 404 when none |
+| PATCH | `/deep-work/sessions/{id}` | `{action: end|abandon}` |
+| GET/POST | `/weekly-ritual` | Opens Sunday 17:00 local, stays open through Wednesday; 409 outside the window |
+
+**Safety:** every endpoint that accepts free text may return HTTP 200 with `safety: {paused, category, message, resources[]}` instead of the normal result, and in that case nothing was stored for coaching. Changed in this phase: `POST /protocols/{id}/sections/{key}/revise` now returns `{section, safety}`, `POST /protocols/{id}/rating` returns `{safety}`, and interview turns include `safety`.

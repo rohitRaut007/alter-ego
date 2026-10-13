@@ -20,7 +20,7 @@ Status column: **Decided** = user answered; **Default** = my recommendation, app
 | 13 | "Real-time protocol generation during or immediately after the interview" | §6.1 | Async Celery job streamed over SSE so sections reveal one by one (§7.1 step 3). | Default |
 | 14 | "Measurable change in one trait within 30 days" (north star) has no measurement method | §10.1 | Per-trait self-rating at day 0, 14, 30 plus practice completion; event taxonomy in ARCHITECTURE.md. Needs your sign-off on the instrument. | Default |
 | 15 | NPS target >65 and D30 >40% for a premium self-improvement product | §10.2 | Keep as targets; ROADMAP gates Alpha on leading indicators (onboarding completion, accuracy) only. | Default |
-| 16 | No safety or crisis handling despite out-of-scope clinical users | §4.3 | Add boundary detection and redirect (your brief). Needs a vetted crisis-resource list for India and global. | Default |
+| 16 | No safety or crisis handling despite out-of-scope clinical users | §4.3 | Boundary detection and redirect built in Phase 3 (ADR 0009). Resources verified 2026-10-13; still needs a qualified human review and a stronger classifier before real users. | Decided |
 
 ## PRD §14 open questions: what blocks the build
 

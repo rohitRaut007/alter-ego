@@ -128,10 +128,10 @@ Scope: cache protocol and daily tasks; queue task completions, practice check-in
 
 ## 6. Safety boundary (product is not therapy)
 
-1. Every mentor message and reflection passes the classifier before coaching logic runs.
+1. Every free-text input (interview answers, revision instructions, reflections, ritual answers, trait notes, and mentor messages from Phase 4) passes the classifier before any model or coaching logic runs. Implemented in Phase 3; see ADR 0009.
 2. On clinical distress or crisis language: stop coaching, return a fixed supportive redirect with region-appropriate resources, mark thread `paused_safety`.
 3. Log an event `safety.boundary_triggered` with category and timestamp only. No content in logs, Sentry or analytics.
-4. A human-reviewed resource list is required before Alpha (PRD_GAPS #16).
+4. A human-reviewed resource list is required before real users (PRD_GAPS #16). Numbers are verified against official sources but `HUMAN_REVIEWED` is still false.
 
 ## 7. Analytics taxonomy (maps to PRD §10)
 
