@@ -104,6 +104,99 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+  /api/v1/daily/brief:
+    get:
+      operationId: daily_brief_retrieve
+      description: 'Morning brief: what today demands, from the sprint and this week''s
+        progress.'
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: YYYY-MM-DD, defaults to today
+      tags:
+      - daily
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brief'
+          description: ''
+  /api/v1/deep-work/sessions:
+    post:
+      operationId: deep_work_sessions_create
+      tags:
+      - deep-work
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeepWorkStartRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeepWorkStartRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeepWorkStartRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepWorkSession'
+          description: ''
+  /api/v1/deep-work/sessions/{id}:
+    patch:
+      operationId: deep_work_sessions_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - deep-work
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDeepWorkUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDeepWorkUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDeepWorkUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepWorkSession'
+          description: ''
+  /api/v1/deep-work/sessions/active:
+    get:
+      operationId: deep_work_sessions_active_retrieve
+      tags:
+      - deep-work
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepWorkSession'
+          description: ''
   /api/v1/interviews:
     post:
       operationId: interviews_create
@@ -280,6 +373,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/Consent'
           description: ''
+  /api/v1/practices/{id}/logs:
+    post:
+      operationId: practices_logs_create
+      description: Mark a practice done (or undo it) for today or yesterday.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - practices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeLogRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PracticeLogRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PracticeLogRequestRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeLog'
+          description: ''
   /api/v1/protocols/{id}:
     get:
       operationId: protocols_retrieve
@@ -373,8 +499,12 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResult'
+          description: ''
   /api/v1/protocols/{id}/sections/{key}/revise:
     post:
       operationId: protocols_sections_revise_create
@@ -413,7 +543,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProtocolSection'
+                $ref: '#/components/schemas/ReviseResult'
           description: ''
   /api/v1/protocols/latest:
     get:
@@ -429,8 +559,262 @@ paths:
               schema:
                 $ref: '#/components/schemas/Protocol'
           description: ''
+  /api/v1/reflections:
+    get:
+      operationId: reflections_retrieve
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+      tags:
+      - reflections
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReflectionResult'
+          description: ''
+    post:
+      operationId: reflections_create
+      description: Save the evening reflection. Crisis or distress language pauses
+        coaching instead.
+      tags:
+      - reflections
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReflectionRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReflectionRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReflectionRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReflectionResult'
+          description: ''
+  /api/v1/sprints/current:
+    get:
+      operationId: sprints_current_retrieve
+      tags:
+      - sprints
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sprint'
+          description: ''
+  /api/v1/tasks:
+    get:
+      operationId: tasks_list
+      parameters:
+      - in: query
+        name: done
+        schema:
+          type: boolean
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: query
+        name: layer
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - tasks
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+          description: ''
+  /api/v1/tasks/{id}:
+    patch:
+      operationId: tasks_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: ''
+  /api/v1/traits:
+    get:
+      operationId: traits_list
+      tags:
+      - traits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trait'
+          description: ''
+  /api/v1/traits/{id}/ratings:
+    post:
+      operationId: traits_ratings_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - traits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraitRatingRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TraitRatingRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TraitRatingRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitRatingResult'
+          description: ''
+  /api/v1/traits/{id}/reflections:
+    post:
+      operationId: traits_reflections_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - traits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraitReflectionRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TraitReflectionRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TraitReflectionRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitReflectionResult'
+          description: ''
+  /api/v1/weekly-ritual:
+    get:
+      operationId: weekly_ritual_retrieve
+      tags:
+      - weekly-ritual
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ritual'
+          description: ''
+    post:
+      operationId: weekly_ritual_create
+      tags:
+      - weekly-ritual
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RitualAnswersRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RitualAnswersRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RitualAnswersRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ritual'
+          description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - end
+      - abandon
+      type: string
+      description: |-
+        * `end` - end
+        * `abandon` - abandon
     AnswerRequestRequest:
       type: object
       properties:
@@ -440,6 +824,123 @@ components:
           maxLength: 4000
       required:
       - answer
+    Brief:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        day_number:
+          type: integer
+        total_days:
+          type: integer
+        sprint_over:
+          type: boolean
+        sprint_goal:
+          type: string
+        tone:
+          $ref: '#/components/schemas/ToneEnum'
+        headline:
+          type: string
+        body:
+          type: string
+        insight:
+          type: string
+          nullable: true
+        week:
+          $ref: '#/components/schemas/WeekProgress'
+        focus:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        due_tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        completed_today:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        checklist:
+          $ref: '#/components/schemas/ChecklistProgress'
+        practices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeState'
+        practice_streak:
+          type: integer
+        best_practice_streak:
+          type: integer
+        schedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleBlock'
+        deep_work_target_minutes:
+          type: integer
+        deep_work_minutes_today:
+          type: integer
+        reflection_done:
+          type: boolean
+        ritual:
+          $ref: '#/components/schemas/RitualState'
+        alter_ego_name:
+          type: string
+        identity_statement:
+          type: string
+      required:
+      - alter_ego_name
+      - best_practice_streak
+      - body
+      - checklist
+      - completed_today
+      - date
+      - day_number
+      - deep_work_minutes_today
+      - deep_work_target_minutes
+      - due_tasks
+      - focus
+      - headline
+      - identity_statement
+      - insight
+      - practice_streak
+      - practices
+      - reflection_done
+      - ritual
+      - schedule
+      - sprint_goal
+      - sprint_over
+      - tone
+      - total_days
+      - week
+    CadenceEnum:
+      enum:
+      - daily
+      - weekly
+      type: string
+      description: |-
+        * `daily` - daily
+        * `weekly` - weekly
+    CategoryEnum:
+      enum:
+      - crisis
+      - distress
+      type: string
+      description: |-
+        * `crisis` - crisis
+        * `distress` - distress
+    ChecklistProgress:
+      type: object
+      properties:
+        total:
+          type: integer
+        done:
+          type: integer
+        overdue:
+          type: integer
+      required:
+      - done
+      - overdue
+      - total
     CompleteResponse:
       type: object
       properties:
@@ -489,6 +990,66 @@ components:
       - granted
       - purpose
       - version
+    DayOffsetEnum:
+      enum:
+      - 0
+      - 14
+      - 30
+      type: integer
+      description: |-
+        * `0` - 0
+        * `14` - 14
+        * `30` - 30
+    DeepWorkSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        task_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        planned_minutes:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        ended_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        abandoned:
+          type: boolean
+          readOnly: true
+        actual_minutes:
+          type: integer
+          readOnly: true
+      required:
+      - abandoned
+      - actual_minutes
+      - ended_at
+      - id
+      - planned_minutes
+      - started_at
+      - task_id
+    DeepWorkStartRequest:
+      type: object
+      properties:
+        planned_minutes:
+          type: integer
+          maximum: 240
+          minimum: 5
+          default: 90
+        task_id:
+          type: string
+          format: uuid
+          nullable: true
     EntitlementsEnum:
       enum:
       - protocol
@@ -530,6 +1091,10 @@ components:
           format: double
         done:
           type: boolean
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
       required:
       - acknowledgement
       - answered_count
@@ -537,7 +1102,36 @@ components:
       - interview_id
       - progress
       - question
+      - safety
       - status
+    KindEnum:
+      enum:
+      - phone
+      - web
+      - emergency
+      type: string
+      description: |-
+        * `phone` - phone
+        * `web` - web
+        * `emergency` - emergency
+    LayerEnum:
+      enum:
+      - identity
+      - character
+      - knowledge
+      - mission
+      - daily_os
+      - presence
+      - legacy
+      type: string
+      description: |-
+        * `identity` - identity
+        * `character` - character
+        * `knowledge` - knowledge
+        * `mission` - mission
+        * `daily_os` - daily_os
+        * `presence` - presence
+        * `legacy` - legacy
     LogoutRequest:
       type: object
       properties:
@@ -587,6 +1181,11 @@ components:
       - entitlements
       - id
       - tier
+    PatchedDeepWorkUpdateRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
     PatchedMeRequest:
       type: object
       properties:
@@ -603,6 +1202,89 @@ components:
           maxLength: 8
         ai_training_opt_out:
           type: boolean
+    PatchedTaskUpdateRequest:
+      type: object
+      properties:
+        done:
+          type: boolean
+    PracticeLog:
+      type: object
+      properties:
+        practice_id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        done:
+          type: boolean
+      required:
+      - date
+      - done
+      - practice_id
+    PracticeLogRequestRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        done:
+          type: boolean
+          default: true
+    PracticeState:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        trait_id:
+          type: string
+          format: uuid
+        trait_name:
+          type: string
+        description:
+          type: string
+        cadence:
+          $ref: '#/components/schemas/CadenceEnum'
+        minutes:
+          type: integer
+        streak:
+          type: integer
+        best_streak:
+          type: integer
+        done_today:
+          type: boolean
+        done_this_week:
+          type: boolean
+        due_today:
+          type: boolean
+        history:
+          type: array
+          items:
+            type: boolean
+      required:
+      - best_streak
+      - cadence
+      - description
+      - done_this_week
+      - done_today
+      - due_today
+      - history
+      - id
+      - minutes
+      - streak
+      - trait_id
+      - trait_name
+    Prompt:
+      type: object
+      properties:
+        key:
+          type: string
+        question:
+          type: string
+      required:
+      - key
+      - question
     Protocol:
       type: object
       properties:
@@ -722,6 +1404,16 @@ components:
       - question
       - stage
       - suggestions
+    Rating:
+      type: object
+      properties:
+        day_offset:
+          type: integer
+        score:
+          type: integer
+      required:
+      - day_offset
+      - score
     RatingRequestRequest:
       type: object
       properties:
@@ -734,6 +1426,104 @@ components:
           maxLength: 1000
       required:
       - score
+    RatingResult:
+      type: object
+      properties:
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - safety
+    Reflection:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          readOnly: true
+        answers:
+          $ref: '#/components/schemas/ReflectionAnswers'
+        rating:
+          type: integer
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - answers
+      - date
+      - rating
+      - updated_at
+    ReflectionAnswers:
+      type: object
+      properties:
+        compounded:
+          type: string
+          maxLength: 2000
+        leaked:
+          type: string
+          default: ''
+          maxLength: 2000
+        tomorrow:
+          type: string
+          default: ''
+          maxLength: 2000
+      required:
+      - compounded
+    ReflectionAnswersRequest:
+      type: object
+      properties:
+        compounded:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        leaked:
+          type: string
+          default: ''
+          maxLength: 2000
+        tomorrow:
+          type: string
+          default: ''
+          maxLength: 2000
+      required:
+      - compounded
+    ReflectionRequestRequest:
+      type: object
+      properties:
+        answers:
+          $ref: '#/components/schemas/ReflectionAnswersRequest'
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+          nullable: true
+        date:
+          type: string
+          format: date
+      required:
+      - answers
+    ReflectionResult:
+      type: object
+      properties:
+        reflection:
+          allOf:
+          - $ref: '#/components/schemas/Reflection'
+          nullable: true
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prompt'
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - prompts
+      - reflection
+      - safety
     RegisterRequest:
       type: object
       properties:
@@ -782,6 +1572,248 @@ components:
           maxLength: 1000
       required:
       - instruction
+    ReviseResult:
+      type: object
+      description: Either the revised section, or a safety notice when the instruction
+        tripped the boundary.
+      properties:
+        section:
+          allOf:
+          - $ref: '#/components/schemas/ProtocolSection'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - safety
+      - section
+    Ritual:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/RitualState'
+        stats:
+          allOf:
+          - $ref: '#/components/schemas/RitualStats'
+          nullable: true
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prompt'
+        answers:
+          allOf:
+          - $ref: '#/components/schemas/RitualAnswers'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - answers
+      - prompts
+      - safety
+      - state
+      - stats
+    RitualAnswers:
+      type: object
+      properties:
+        shipped:
+          type: string
+          maxLength: 2000
+        slipped:
+          type: string
+          default: ''
+          maxLength: 2000
+        next_outcome:
+          type: string
+          maxLength: 2000
+      required:
+      - next_outcome
+      - shipped
+    RitualAnswersRequest:
+      type: object
+      properties:
+        shipped:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        slipped:
+          type: string
+          default: ''
+          maxLength: 2000
+        next_outcome:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+      - next_outcome
+      - shipped
+    RitualState:
+      type: object
+      properties:
+        available:
+          type: boolean
+        week_start:
+          type: string
+          format: date
+          nullable: true
+        completed:
+          type: boolean
+        due:
+          type: boolean
+      required:
+      - available
+      - completed
+      - due
+      - week_start
+    RitualStats:
+      type: object
+      properties:
+        week_start:
+          type: string
+          format: date
+        tasks_due:
+          type: integer
+        tasks_done:
+          type: integer
+        missed_by_layer:
+          type: object
+          additionalProperties:
+            type: integer
+        practice_days:
+          type: integer
+        deep_work_minutes:
+          type: integer
+      required:
+      - deep_work_minutes
+      - missed_by_layer
+      - practice_days
+      - tasks_done
+      - tasks_due
+      - week_start
+    SafetyNotice:
+      type: object
+      description: Returned with HTTP 200 instead of a coaching reply when the boundary
+        triggers.
+      properties:
+        paused:
+          type: boolean
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        message:
+          type: string
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyResource'
+      required:
+      - category
+      - message
+      - paused
+      - resources
+    SafetyResource:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        contact:
+          type: string
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        note:
+          type: string
+      required:
+      - contact
+      - id
+      - kind
+      - name
+      - note
+    ScheduleBlock:
+      type: object
+      properties:
+        start:
+          type: string
+        end:
+          type: string
+        label:
+          type: string
+        layer:
+          $ref: '#/components/schemas/LayerEnum'
+        kind:
+          type: string
+      required:
+      - end
+      - kind
+      - label
+      - layer
+      - start
+    SourceEnum:
+      enum:
+      - checklist30
+      - sprint90
+      type: string
+      description: |-
+        * `checklist30` - Checklist 30
+        * `sprint90` - Sprint 90
+    Sprint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+        goal:
+          type: string
+        day_number:
+          type: integer
+        total_days:
+          type: integer
+        weeks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SprintWeek'
+        checklist:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      required:
+      - checklist
+      - day_number
+      - ends_on
+      - goal
+      - id
+      - starts_on
+      - total_days
+      - weeks
+    SprintWeek:
+      type: object
+      properties:
+        index:
+          type: integer
+        total:
+          type: integer
+        done:
+          type: integer
+        is_current:
+          type: boolean
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      required:
+      - done
+      - index
+      - is_current
+      - tasks
+      - total
     StatusEnum:
       enum:
       - generating
@@ -792,6 +1824,71 @@ components:
         * `generating` - Generating
         * `ready` - Ready
         * `failed` - Failed
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        source:
+          allOf:
+          - $ref: '#/components/schemas/SourceEnum'
+          readOnly: true
+        layer:
+          allOf:
+          - $ref: '#/components/schemas/LayerEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        detail:
+          type: string
+          readOnly: true
+        minutes:
+          type: integer
+          readOnly: true
+        priority:
+          type: boolean
+          readOnly: true
+        due_day:
+          type: integer
+          readOnly: true
+        due_date:
+          type: string
+          format: date
+          readOnly: true
+        week_index:
+          type: integer
+          readOnly: true
+          nullable: true
+        trait_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        done:
+          type: boolean
+          readOnly: true
+        done_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - detail
+      - done
+      - done_at
+      - due_date
+      - due_day
+      - id
+      - layer
+      - minutes
+      - priority
+      - source
+      - title
+      - trait_id
+      - week_index
     TierEnum:
       enum:
       - core
@@ -845,6 +1942,132 @@ components:
           minLength: 1
       required:
       - refresh
+    ToneEnum:
+      enum:
+      - start
+      - push
+      - balanced
+      - steady
+      type: string
+      description: |-
+        * `start` - start
+        * `push` - push
+        * `balanced` - balanced
+        * `steady` - steady
+    Trait:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        statement:
+          type: string
+        rationale:
+          type: string
+        failure_mode:
+          type: string
+        reflection_prompt:
+          type: string
+        practices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeState'
+        streak:
+          type: integer
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        rating_due_offset:
+          type: integer
+          nullable: true
+        reflection_done_this_month:
+          type: boolean
+      required:
+      - failure_mode
+      - id
+      - name
+      - practices
+      - rating_due_offset
+      - ratings
+      - rationale
+      - reflection_done_this_month
+      - reflection_prompt
+      - statement
+      - streak
+    TraitRatingRequestRequest:
+      type: object
+      properties:
+        day_offset:
+          $ref: '#/components/schemas/DayOffsetEnum'
+        score:
+          type: integer
+          maximum: 5
+          minimum: 1
+        note:
+          type: string
+          maxLength: 1000
+      required:
+      - day_offset
+      - score
+    TraitRatingResult:
+      type: object
+      properties:
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/Rating'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - rating
+      - safety
+    TraitReflectionRequestRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 3000
+      required:
+      - text
+    TraitReflectionResult:
+      type: object
+      properties:
+        saved:
+          type: boolean
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - safety
+      - saved
+    WeekProgress:
+      type: object
+      properties:
+        week:
+          type: integer
+        total:
+          type: integer
+        done:
+          type: integer
+        overdue:
+          type: integer
+        overdue_by_layer:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - done
+      - overdue
+      - overdue_by_layer
+      - total
+      - week
   securitySchemes:
     jwtAuth:
       type: http

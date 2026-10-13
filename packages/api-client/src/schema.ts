@@ -76,6 +76,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/daily/brief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Morning brief: what today demands, from the sprint and this week's progress. */
+        get: operations["daily_brief_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deep-work/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["deep_work_sessions_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/deep-work/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["deep_work_sessions_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/deep-work/sessions/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["deep_work_sessions_active_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/interviews": {
         parameters: {
             query?: never;
@@ -171,6 +236,23 @@ export interface paths {
         put?: never;
         /** @description Read the ledger or append a new decision. Rows are never edited. */
         post: operations["me_consents_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/practices/{id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Mark a practice done (or undo it) for today or yesterday. */
+        post: operations["practices_logs_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -275,12 +357,191 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reflections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reflections_retrieve"];
+        put?: never;
+        /** @description Save the evening reflection. Crisis or distress language pauses coaching instead. */
+        post: operations["reflections_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sprints/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["sprints_current_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tasks_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["tasks_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/traits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["traits_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/traits/{id}/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["traits_ratings_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/traits/{id}/reflections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["traits_reflections_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weekly-ritual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["weekly_ritual_retrieve"];
+        put?: never;
+        post: operations["weekly_ritual_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description * `end` - end
+         *     * `abandon` - abandon
+         * @enum {string}
+         */
+        ActionEnum: "end" | "abandon";
         AnswerRequestRequest: {
             answer: string;
+        };
+        Brief: {
+            /** Format: date */
+            date: string;
+            day_number: number;
+            total_days: number;
+            sprint_over: boolean;
+            sprint_goal: string;
+            tone: components["schemas"]["ToneEnum"];
+            headline: string;
+            body: string;
+            insight: string | null;
+            week: components["schemas"]["WeekProgress"];
+            focus: components["schemas"]["Task"][];
+            due_tasks: components["schemas"]["Task"][];
+            completed_today: components["schemas"]["Task"][];
+            checklist: components["schemas"]["ChecklistProgress"];
+            practices: components["schemas"]["PracticeState"][];
+            practice_streak: number;
+            best_practice_streak: number;
+            schedule: components["schemas"]["ScheduleBlock"][];
+            deep_work_target_minutes: number;
+            deep_work_minutes_today: number;
+            reflection_done: boolean;
+            ritual: components["schemas"]["RitualState"];
+            alter_ego_name: string;
+            identity_statement: string;
+        };
+        /**
+         * @description * `daily` - daily
+         *     * `weekly` - weekly
+         * @enum {string}
+         */
+        CadenceEnum: "daily" | "weekly";
+        /**
+         * @description * `crisis` - crisis
+         *     * `distress` - distress
+         * @enum {string}
+         */
+        CategoryEnum: "crisis" | "distress";
+        ChecklistProgress: {
+            total: number;
+            done: number;
+            overdue: number;
         };
         CompleteResponse: {
             /** Format: uuid */
@@ -298,6 +559,32 @@ export interface components {
             purpose: components["schemas"]["PurposeEnum"];
             version: string;
             granted: boolean;
+        };
+        /**
+         * @description * `0` - 0
+         *     * `14` - 14
+         *     * `30` - 30
+         * @enum {integer}
+         */
+        DayOffsetEnum: 0 | 14 | 30;
+        DeepWorkSession: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly task_id: string | null;
+            readonly planned_minutes: number;
+            /** Format: date-time */
+            readonly started_at: string;
+            /** Format: date-time */
+            readonly ended_at: string | null;
+            readonly abandoned: boolean;
+            readonly actual_minutes: number;
+        };
+        DeepWorkStartRequest: {
+            /** @default 90 */
+            planned_minutes: number;
+            /** Format: uuid */
+            task_id?: string | null;
         };
         /**
          * @description * `protocol` - protocol
@@ -321,7 +608,26 @@ export interface components {
             /** Format: double */
             progress: number;
             done: boolean;
+            safety: components["schemas"]["SafetyNotice"] | null;
         };
+        /**
+         * @description * `phone` - phone
+         *     * `web` - web
+         *     * `emergency` - emergency
+         * @enum {string}
+         */
+        KindEnum: "phone" | "web" | "emergency";
+        /**
+         * @description * `identity` - identity
+         *     * `character` - character
+         *     * `knowledge` - knowledge
+         *     * `mission` - mission
+         *     * `daily_os` - daily_os
+         *     * `presence` - presence
+         *     * `legacy` - legacy
+         * @enum {string}
+         */
+        LayerEnum: "identity" | "character" | "knowledge" | "mission" | "daily_os" | "presence" | "legacy";
         LogoutRequest: {
             refresh: string;
         };
@@ -339,11 +645,50 @@ export interface components {
             readonly tier: components["schemas"]["TierEnum"];
             readonly entitlements: components["schemas"]["EntitlementsEnum"][];
         };
+        PatchedDeepWorkUpdateRequest: {
+            action?: components["schemas"]["ActionEnum"];
+        };
         PatchedMeRequest: {
             display_name?: string;
             timezone?: string;
             locale?: string;
             ai_training_opt_out?: boolean;
+        };
+        PatchedTaskUpdateRequest: {
+            done?: boolean;
+        };
+        PracticeLog: {
+            /** Format: uuid */
+            practice_id: string;
+            /** Format: date */
+            date: string;
+            done: boolean;
+        };
+        PracticeLogRequestRequest: {
+            /** Format: date */
+            date?: string;
+            /** @default true */
+            done: boolean;
+        };
+        PracticeState: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            trait_id: string;
+            trait_name: string;
+            description: string;
+            cadence: components["schemas"]["CadenceEnum"];
+            minutes: number;
+            streak: number;
+            best_streak: number;
+            done_today: boolean;
+            done_this_week: boolean;
+            due_today: boolean;
+            history: boolean[];
+        };
+        Prompt: {
+            key: string;
+            question: string;
         };
         Protocol: {
             /** Format: uuid */
@@ -386,9 +731,49 @@ export interface components {
             readonly multi_select: boolean;
             readonly placeholder: string;
         };
+        Rating: {
+            day_offset: number;
+            score: number;
+        };
         RatingRequestRequest: {
             score: number;
             comment?: string;
+        };
+        RatingResult: {
+            safety: components["schemas"]["SafetyNotice"] | null;
+        };
+        Reflection: {
+            /** Format: date */
+            readonly date: string;
+            answers: components["schemas"]["ReflectionAnswers"];
+            readonly rating: number | null;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        ReflectionAnswers: {
+            compounded: string;
+            /** @default  */
+            leaked: string;
+            /** @default  */
+            tomorrow: string;
+        };
+        ReflectionAnswersRequest: {
+            compounded: string;
+            /** @default  */
+            leaked: string;
+            /** @default  */
+            tomorrow: string;
+        };
+        ReflectionRequestRequest: {
+            answers: components["schemas"]["ReflectionAnswersRequest"];
+            rating?: number | null;
+            /** Format: date */
+            date?: string;
+        };
+        ReflectionResult: {
+            reflection: components["schemas"]["Reflection"] | null;
+            prompts: components["schemas"]["Prompt"][];
+            safety: components["schemas"]["SafetyNotice"] | null;
         };
         RegisterRequest: {
             /** Format: email */
@@ -406,6 +791,95 @@ export interface components {
         ReviseRequestRequest: {
             instruction: string;
         };
+        /** @description Either the revised section, or a safety notice when the instruction tripped the boundary. */
+        ReviseResult: {
+            section: components["schemas"]["ProtocolSection"] | null;
+            safety: components["schemas"]["SafetyNotice"] | null;
+        };
+        Ritual: {
+            state: components["schemas"]["RitualState"];
+            stats: components["schemas"]["RitualStats"] | null;
+            prompts: components["schemas"]["Prompt"][];
+            answers: components["schemas"]["RitualAnswers"] | null;
+            safety: components["schemas"]["SafetyNotice"] | null;
+        };
+        RitualAnswers: {
+            shipped: string;
+            /** @default  */
+            slipped: string;
+            next_outcome: string;
+        };
+        RitualAnswersRequest: {
+            shipped: string;
+            /** @default  */
+            slipped: string;
+            next_outcome: string;
+        };
+        RitualState: {
+            available: boolean;
+            /** Format: date */
+            week_start: string | null;
+            completed: boolean;
+            due: boolean;
+        };
+        RitualStats: {
+            /** Format: date */
+            week_start: string;
+            tasks_due: number;
+            tasks_done: number;
+            missed_by_layer: {
+                [key: string]: number;
+            };
+            practice_days: number;
+            deep_work_minutes: number;
+        };
+        /** @description Returned with HTTP 200 instead of a coaching reply when the boundary triggers. */
+        SafetyNotice: {
+            paused: boolean;
+            category: components["schemas"]["CategoryEnum"];
+            message: string;
+            resources: components["schemas"]["SafetyResource"][];
+        };
+        SafetyResource: {
+            id: string;
+            name: string;
+            contact: string;
+            kind: components["schemas"]["KindEnum"];
+            note: string;
+        };
+        ScheduleBlock: {
+            start: string;
+            end: string;
+            label: string;
+            layer: components["schemas"]["LayerEnum"];
+            kind: string;
+        };
+        /**
+         * @description * `checklist30` - Checklist 30
+         *     * `sprint90` - Sprint 90
+         * @enum {string}
+         */
+        SourceEnum: "checklist30" | "sprint90";
+        Sprint: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            starts_on: string;
+            /** Format: date */
+            ends_on: string;
+            goal: string;
+            day_number: number;
+            total_days: number;
+            weeks: components["schemas"]["SprintWeek"][];
+            checklist: components["schemas"]["Task"][];
+        };
+        SprintWeek: {
+            index: number;
+            total: number;
+            done: number;
+            is_current: boolean;
+            tasks: components["schemas"]["Task"][];
+        };
         /**
          * @description * `generating` - Generating
          *     * `ready` - Ready
@@ -413,6 +887,25 @@ export interface components {
          * @enum {string}
          */
         StatusEnum: "generating" | "ready" | "failed";
+        Task: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly source: components["schemas"]["SourceEnum"];
+            readonly layer: components["schemas"]["LayerEnum"];
+            readonly title: string;
+            readonly detail: string;
+            readonly minutes: number;
+            readonly priority: boolean;
+            readonly due_day: number;
+            /** Format: date */
+            readonly due_date: string;
+            readonly week_index: number | null;
+            /** Format: uuid */
+            readonly trait_id: string | null;
+            readonly done: boolean;
+            /** Format: date-time */
+            readonly done_at: string | null;
+        };
         /**
          * @description * `core` - core
          *     * `full` - full
@@ -433,6 +926,53 @@ export interface components {
         };
         TokenRefreshRequest: {
             refresh: string;
+        };
+        /**
+         * @description * `start` - start
+         *     * `push` - push
+         *     * `balanced` - balanced
+         *     * `steady` - steady
+         * @enum {string}
+         */
+        ToneEnum: "start" | "push" | "balanced" | "steady";
+        Trait: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            statement: string;
+            rationale: string;
+            failure_mode: string;
+            reflection_prompt: string;
+            practices: components["schemas"]["PracticeState"][];
+            streak: number;
+            ratings: components["schemas"]["Rating"][];
+            rating_due_offset: number | null;
+            reflection_done_this_month: boolean;
+        };
+        TraitRatingRequestRequest: {
+            day_offset: components["schemas"]["DayOffsetEnum"];
+            score: number;
+            note?: string;
+        };
+        TraitRatingResult: {
+            rating: components["schemas"]["Rating"] | null;
+            safety: components["schemas"]["SafetyNotice"] | null;
+        };
+        TraitReflectionRequestRequest: {
+            text: string;
+        };
+        TraitReflectionResult: {
+            saved: boolean;
+            safety: components["schemas"]["SafetyNotice"] | null;
+        };
+        WeekProgress: {
+            week: number;
+            total: number;
+            done: number;
+            overdue: number;
+            overdue_by_layer: {
+                [key: string]: number;
+            };
         };
     };
     responses: never;
@@ -538,6 +1078,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenRefresh"];
+                };
+            };
+        };
+    };
+    daily_brief_retrieve: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM-DD, defaults to today */
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Brief"];
+                };
+            };
+        };
+    };
+    deep_work_sessions_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DeepWorkStartRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["DeepWorkStartRequest"];
+                "multipart/form-data": components["schemas"]["DeepWorkStartRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepWorkSession"];
+                };
+            };
+        };
+    };
+    deep_work_sessions_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedDeepWorkUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedDeepWorkUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedDeepWorkUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepWorkSession"];
+                };
+            };
+        };
+    };
+    deep_work_sessions_active_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepWorkSession"];
                 };
             };
         };
@@ -734,6 +1367,33 @@ export interface operations {
             };
         };
     };
+    practices_logs_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PracticeLogRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PracticeLogRequestRequest"];
+                "multipart/form-data": components["schemas"]["PracticeLogRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeLog"];
+                };
+            };
+        };
+    };
     protocols_retrieve: {
         parameters: {
             query?: never;
@@ -814,12 +1474,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RatingResult"];
+                };
             };
         };
     };
@@ -846,7 +1507,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProtocolSection"];
+                    "application/json": components["schemas"]["ReviseResult"];
                 };
             };
         };
@@ -866,6 +1527,239 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Protocol"];
+                };
+            };
+        };
+    };
+    reflections_retrieve: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReflectionResult"];
+                };
+            };
+        };
+    };
+    reflections_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReflectionRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReflectionRequestRequest"];
+                "multipart/form-data": components["schemas"]["ReflectionRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReflectionResult"];
+                };
+            };
+        };
+    };
+    sprints_current_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Sprint"];
+                };
+            };
+        };
+    };
+    tasks_list: {
+        parameters: {
+            query?: {
+                done?: boolean;
+                from?: string;
+                layer?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"][];
+                };
+            };
+        };
+    };
+    tasks_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedTaskUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedTaskUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PatchedTaskUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+        };
+    };
+    traits_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Trait"][];
+                };
+            };
+        };
+    };
+    traits_ratings_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraitRatingRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TraitRatingRequestRequest"];
+                "multipart/form-data": components["schemas"]["TraitRatingRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraitRatingResult"];
+                };
+            };
+        };
+    };
+    traits_reflections_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraitReflectionRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TraitReflectionRequestRequest"];
+                "multipart/form-data": components["schemas"]["TraitReflectionRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraitReflectionResult"];
+                };
+            };
+        };
+    };
+    weekly_ritual_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ritual"];
+                };
+            };
+        };
+    };
+    weekly_ritual_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RitualAnswersRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RitualAnswersRequest"];
+                "multipart/form-data": components["schemas"]["RitualAnswersRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ritual"];
                 };
             };
         };

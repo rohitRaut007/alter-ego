@@ -12,6 +12,16 @@ export type InterviewStep = components["schemas"]["InterviewStep"];
 export type Question = components["schemas"]["Question"];
 export type Protocol = components["schemas"]["Protocol"];
 export type ProtocolSection = components["schemas"]["ProtocolSection"];
+export type SafetyNotice = components["schemas"]["SafetyNotice"];
+export type Brief = components["schemas"]["Brief"];
+export type Task = components["schemas"]["Task"];
+export type PracticeState = components["schemas"]["PracticeState"];
+export type Trait = components["schemas"]["Trait"];
+export type Sprint = components["schemas"]["Sprint"];
+export type SprintWeek = components["schemas"]["SprintWeek"];
+export type DeepWorkSession = components["schemas"]["DeepWorkSession"];
+export type Ritual = components["schemas"]["Ritual"];
+export type ReflectionResult = components["schemas"]["ReflectionResult"];
 
 export class ApiError extends Error {
   constructor(
