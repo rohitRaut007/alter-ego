@@ -10,6 +10,7 @@ urlpatterns = [
     path("readyz", ReadyView.as_view(), name="readyz"),
     path("admin/", admin.site.urls),
     path("api/v1/", include("accounts.urls")),
+    path("api/v1/", include("protocol.urls")),
 ]
 
 if settings.DEBUG:

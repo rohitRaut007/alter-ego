@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "accounts",
     "billing",
     "analytics",
+    "mentor",
+    "protocol",
 ]
 
 MIDDLEWARE = [
@@ -110,6 +112,12 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env.cors_origins
+
+FIELD_ENCRYPTION_KEYS = env.encryption_keys
+LLM_PROVIDER = env.llm_provider
+FAKE_LLM_DELAY_MS = env.fake_llm_delay_ms
+ANTHROPIC_MODEL = env.anthropic_model  # read by the real provider; never hardcoded
+SSE_POLL_SECONDS = env.sse_poll_seconds
 
 CELERY_BROKER_URL = env.redis_url or "memory://"
 CELERY_TASK_ALWAYS_EAGER = not env.redis_url

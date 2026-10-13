@@ -11,3 +11,5 @@ celery>=5.4
 redis>=5.0
 uvicorn>=0.30
 sentry-sdk>=2.0
+cryptography>=43.0
+reportlab>=4.2
