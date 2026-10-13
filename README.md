@@ -19,9 +19,7 @@ alter-ego-os/
 ├── package.json # Dependencies (Framer Motion, Three.js, GSAP, etc.)
 └── tailwind.config.js # Custom animations & keyframes config
 
-supabase:
-Name : Alter Ego
-Password: Alter Ego@7020047992
+
 
 Build a production-ready frontend for Alter Ego OS, an AI-powered personal transformation platform based on the provided PRD.
 
