@@ -1,41 +1,107 @@
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { Button, Card, Spinner } from "@/components/ui";
+import { AppShell } from "@/components/AppShell";
+import { Button, Card, Eyebrow, Spinner } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 
 export function HomePage() {
-  const { api, signOut } = useAuth();
+  const { api } = useAuth();
+
   const me = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const { data, error } = await api.GET("/api/v1/me");
-      if (!data) throw new Error(`Could not load your account (${JSON.stringify(error)})`);
+      const { data } = await api.GET("/api/v1/me");
+      if (!data) throw new Error("Could not load your account.");
       return data;
     },
   });
 
-  if (me.isPending) return <Spinner label="Loading your account" />;
-  if (me.isError) {
+  const protocol = useQuery({
+    queryKey: ["protocol", "latest"],
+    queryFn: async () => {
+      const { data, response } = await api.GET("/api/v1/protocols/latest");
+      if (response.status === 404) return null;
+      if (!data) throw new Error("Could not load your protocol.");
+      return data;
+    },
+  });
+
+  if (me.isPending || protocol.isPending) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
+      <AppShell>
+        <Spinner label="Loading" />
+      </AppShell>
+    );
+  }
+  if (me.isError || protocol.isError) {
+    return (
+      <AppShell>
         <Card>
           <p role="alert" className="text-sm text-destructive">
             We could not load your account. Please try again.
           </p>
-          <Button className="mt-4" onClick={() => void me.refetch()}>Retry</Button>
+          <Button
+            className="mt-4 w-auto"
+            onClick={() => {
+              void me.refetch();
+              void protocol.refetch();
+            }}
+          >
+            Retry
+          </Button>
         </Card>
-      </main>
+      </AppShell>
     );
   }
 
   const user = me.data;
+  const p = protocol.data;
+  const generating = p?.status === "generating";
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent">Alter Ego OS</p>
+    <AppShell>
+      <Eyebrow>Alter Ego OS</Eyebrow>
       <h1 className="mt-2 font-display text-3xl">
         {user.display_name ? `Welcome, ${user.display_name}.` : "Welcome."}
       </h1>
+
       <Card className="mt-8">
+        {p === null ? (
+          <>
+            <h2 className="text-lg font-semibold">Begin the interview</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              A conversation about your ambition, position, working style and the patterns you want
+              to design around. Your protocol is built from your own answers. Set aside 15 to 25
+              minutes.
+            </p>
+            <Link to="/onboarding" className="mt-5 inline-block">
+              <Button className="w-auto">
+                Start the interview <ArrowRight className="size-4" />
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <h2 className="text-lg font-semibold">
+              {generating ? "Your protocol is being built" : "Your protocol"}
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {generating
+                ? "Sections appear as they are written."
+                : "Review it, revise any section, or download a PDF."}
+            </p>
+            <Link to={`/protocol/${p.id}`} className="mt-5 inline-block">
+              <Button className="w-auto">
+                Open protocol <ArrowRight className="size-4" />
+              </Button>
+            </Link>
+          </>
+        )}
+      </Card>
+
+      <Card className="mt-6">
         <h2 className="text-sm font-semibold">Your plan</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Tier: <span className="font-medium text-foreground">{user.tier}</span>
@@ -48,10 +114,6 @@ export function HomePage() {
           ))}
         </ul>
       </Card>
-      <p className="mt-6 text-sm text-muted-foreground">
-        The onboarding interview arrives in the next phase.
-      </p>
-      <Button className="mt-8 w-auto" onClick={() => void signOut()}>Sign out</Button>
-    </main>
+    </AppShell>
   );
 }
