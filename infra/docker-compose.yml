@@ -1,0 +1,77 @@
+# Local development stack. Values below are dev-only placeholders, not secrets.
+# Override any of them with a root .env file (never committed).
+name: alter-ego-os
+
+x-api-env: &api-env
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-only-not-a-secret-0123456789abcdef}
+  DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+  DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,api}
+  DATABASE_URL: postgres://alterego:alterego@postgres:5432/alterego
+  REDIS_URL: redis://redis:6379/0
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+
+services:
+  postgres:
+    # pgvector image so Phase 2 memory/retrieval needs no infra change.
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: alterego
+      POSTGRES_PASSWORD: alterego
+      POSTGRES_DB: alterego
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alterego -d alterego"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload"
+    environment: *api-env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    command: celery -A config worker -l info
+    environment: *api-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
