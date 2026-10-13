@@ -6,6 +6,7 @@ from .models import DailyReflection, DeepWorkSession, Task
 from .services import REFLECTION_PROMPTS, RITUAL_PROMPTS
 
 LAYERS = ["identity", "character", "knowledge", "mission", "daily_os", "presence", "legacy"]
+TONES = ["start", "push", "balanced", "steady"]
 
 
 class TaskSerializer(serializers.ModelSerializer):

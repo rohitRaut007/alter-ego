@@ -13,6 +13,12 @@ urlpatterns = [
     path("api/v1/", include("protocol.urls")),
     path("api/v1/", include("daily_os.urls")),
     path("api/v1/", include("character.urls")),
+    path("api/v1/", include("mentor.urls")),
+    path("api/v1/", include("knowledge.urls")),
+    path("api/v1/", include("legacy.urls")),
+    path("api/v1/", include("personality.urls")),
+    path("api/v1/", include("calendars.urls")),
+    path("api/v1/", include("dashboard.urls")),
 ]
 
 if settings.DEBUG:

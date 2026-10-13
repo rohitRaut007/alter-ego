@@ -1,5 +1,6 @@
 """The only interface the rest of the codebase uses to talk to a model provider."""
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -35,3 +36,13 @@ class LLMClient(Protocol):
         payload: dict[str, Any],
         max_output_tokens: int,
     ) -> LLMResult: ...
+
+    def stream_text(
+        self,
+        *,
+        task: str,
+        prompt_version: str,
+        system: str,
+        payload: dict[str, Any],
+        max_output_tokens: int,
+    ) -> "Iterator[str]": ...

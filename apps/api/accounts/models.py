@@ -36,6 +36,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     locale = models.CharField(max_length=8, default="en")
     # Data is never used for model training unless the user explicitly changes this.
     ai_training_opt_out = models.BooleanField(default=True)
+    mentor_nudges = models.BooleanField(default=True)
+    weekly_digest = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=now, editable=False)

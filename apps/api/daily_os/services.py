@@ -167,9 +167,24 @@ def get_sprint(user) -> Sprint:
     if protocol is None:
         raise NoProtocol()
     try:
-        return protocol.sprint
+        sprint = protocol.sprint
     except Sprint.DoesNotExist:
-        return sync_protocol(protocol)
+        sprint = sync_protocol(protocol)
+    _ensure_other_trackables(protocol)
+    return sprint
+
+
+def _ensure_other_trackables(protocol: Protocol) -> None:
+    """Knowledge and legacy rows were added after Daily OS; backfill them once."""
+    from knowledge.models import ReadingItem
+    from knowledge.services import sync_reading
+    from legacy.models import LegacyMilestone
+    from legacy.services import sync_milestones
+
+    if not ReadingItem.objects.filter(protocol=protocol).exists():
+        sync_reading(protocol)
+    if not LegacyMilestone.objects.filter(protocol=protocol, origin="protocol").exists():
+        sync_milestones(protocol)
 
 
 # --- tasks --------------------------------------------------------------------------------
@@ -319,6 +334,50 @@ def build_brief(user, sprint: Sprint, on: date) -> dict[str, Any]:
         "ritual": ritual_state(user),
         "alter_ego_name": sections["identity"].content["alter_ego_name"],
         "identity_statement": sections["identity"].content["identity_statement"],
+    }
+
+
+def layer_stats(user, sprint: Sprint, on: date) -> list[dict[str, Any]]:
+    """Per-layer completion of work due so far, weakest first."""
+    rows: dict[str, dict[str, int]] = {}
+    for t in active_tasks(user).filter(sprint=sprint, due_date__lte=on):
+        r = rows.setdefault(t.layer, {"due": 0, "done": 0, "overdue": 0})
+        r["due"] += 1
+        if t.done_at is not None:
+            r["done"] += 1
+        else:
+            r["overdue"] += 1
+    out = [{"layer": k, **v} for k, v in rows.items()]
+    return sorted(out, key=lambda r: (-r["overdue"], r["layer"]))
+
+
+def progress_snapshot(user, sprint: Sprint, on: date) -> dict[str, Any]:
+    """Compact, factual state for the mentor. Numbers only, plus titles of what to do next."""
+    from character.services import overall_practice_streak
+
+    wp = week_progress(user, sprint, on)
+    streak, best = overall_practice_streak(user, on)
+    has_history = PracticeLog.objects.filter(user=user, done=True).exists() or wp["done"] > 0
+    open_tasks = [t for t in active_tasks(user).filter(sprint=sprint) if t.done_at is None]
+    due = [t for t in open_tasks if t.due_date <= on]
+    due.sort(key=lambda t: (not t.priority, t.due_date, t.source_id))
+    # With nothing due yet (day one), point at what is next on the plan instead.
+    upcoming = sorted((t for t in open_tasks if t.due_date > on),
+                      key=lambda t: (t.due_date, not t.priority, t.source_id))
+    focus = due[:3] if due else upcoming[:3]
+    return {
+        "date": on.isoformat(),
+        "day_number": day_number(sprint, on),
+        "total_days": SPRINT_DAYS,
+        "week": wp,
+        "tone": choose_tone(wp, streak, has_history),
+        "insight": week_insight(wp),
+        "practice_streak": streak,
+        "best_practice_streak": best,
+        "focus_titles": [t.title for t in focus],
+        "focus_is_upcoming": not due and bool(upcoming),
+        "layers": layer_stats(user, sprint, on),
+        "ritual_due": ritual_state(user)["due"],
     }
 
 

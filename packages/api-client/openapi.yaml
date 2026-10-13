@@ -104,6 +104,93 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+  /api/v1/calendar:
+    get:
+      operationId: calendar_retrieve
+      tags:
+      - calendar
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+    post:
+      operationId: calendar_create
+      tags:
+      - calendar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConnectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConnectRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+    delete:
+      operationId: calendar_destroy
+      tags:
+      - calendar
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/calendar/events:
+    get:
+      operationId: calendar_events_list
+      parameters:
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - calendar
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+          description: ''
+  /api/v1/calendar/sync:
+    post:
+      operationId: calendar_sync_create
+      tags:
+      - calendar
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResult'
+          description: ''
   /api/v1/daily/brief:
     get:
       operationId: daily_brief_retrieve
@@ -125,6 +212,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Brief'
+          description: ''
+  /api/v1/dashboard:
+    get:
+      operationId: dashboard_retrieve
+      tags:
+      - dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
           description: ''
   /api/v1/deep-work/sessions:
     post:
@@ -282,6 +383,284 @@ paths:
               schema:
                 $ref: '#/components/schemas/InterviewStep'
           description: ''
+  /api/v1/knowledge/advisor:
+    post:
+      operationId: knowledge_advisor_create
+      description: Ask for reading advice, note summaries or connections. Cites curated
+        sources only.
+      tags:
+      - knowledge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvisorRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdvisorRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdvisorRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvisorResult'
+          description: ''
+  /api/v1/knowledge/items/{id}:
+    patch:
+      operationId: knowledge_items_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - knowledge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReadingItemUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReadingItemUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReadingItemUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingItem'
+          description: ''
+  /api/v1/knowledge/library:
+    get:
+      operationId: knowledge_library_retrieve
+      tags:
+      - knowledge
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Library'
+          description: ''
+  /api/v1/knowledge/notes:
+    get:
+      operationId: knowledge_notes_list
+      tags:
+      - knowledge
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+          description: ''
+    post:
+      operationId: knowledge_notes_create
+      tags:
+      - knowledge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResult'
+          description: ''
+  /api/v1/knowledge/notes/{id}:
+    delete:
+      operationId: knowledge_notes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - knowledge
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/legacy/milestones:
+    post:
+      operationId: legacy_milestones_create
+      tags:
+      - legacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MilestoneCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MilestoneCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MilestoneCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MilestoneResult'
+          description: ''
+  /api/v1/legacy/milestones/{id}:
+    patch:
+      operationId: legacy_milestones_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - legacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestoneUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestoneUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMilestoneUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MilestoneResult'
+          description: ''
+    delete:
+      operationId: legacy_milestones_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - legacy
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/legacy/reviews:
+    post:
+      operationId: legacy_reviews_create
+      tags:
+      - legacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewScheduleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewScheduleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewScheduleRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/legacy/reviews/{id}/complete:
+    post:
+      operationId: legacy_reviews_complete_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - legacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCompleteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewCompleteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewCompleteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResult'
+          description: ''
+  /api/v1/legacy/timeline:
+    get:
+      operationId: legacy_timeline_retrieve
+      tags:
+      - legacy
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+          description: ''
   /api/v1/me:
     get:
       operationId: me_retrieve
@@ -372,6 +751,412 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Consent'
+          description: ''
+  /api/v1/me/export:
+    get:
+      operationId: me_export_retrieve
+      description: Download everything held for this account as JSON.
+      tags:
+      - me
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/me/identity:
+    patch:
+      operationId: me_identity_partial_update
+      description: Edit the alter ego name and identity statement directly on the
+        protocol.
+      tags:
+      - me
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIdentityEditRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIdentityEditRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIdentityEditRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityResult'
+          description: ''
+  /api/v1/me/reset:
+    post:
+      operationId: me_reset_create
+      tags:
+      - me
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetResult'
+          description: ''
+  /api/v1/mentor/challenges:
+    get:
+      operationId: mentor_challenges_list
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Challenge'
+          description: ''
+  /api/v1/mentor/challenges/{id}/accept:
+    post:
+      operationId: mentor_challenges_accept_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+          description: ''
+  /api/v1/mentor/challenges/{id}/dismiss:
+    post:
+      operationId: mentor_challenges_dismiss_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+          description: ''
+  /api/v1/mentor/memory:
+    get:
+      operationId: mentor_memory_list
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Fact'
+          description: ''
+  /api/v1/mentor/memory/{id}:
+    delete:
+      operationId: mentor_memory_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/mentor/nudges:
+    get:
+      operationId: mentor_nudges_list
+      description: Evaluates the proactive rules (idempotent) and returns recent nudges.
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Nudge'
+          description: ''
+  /api/v1/mentor/nudges/{id}/read:
+    post:
+      operationId: mentor_nudges_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Nudge'
+          description: ''
+  /api/v1/mentor/prompts:
+    get:
+      operationId: mentor_prompts_retrieve
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prompts'
+          description: ''
+  /api/v1/mentor/threads:
+    get:
+      operationId: mentor_threads_list
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thread'
+          description: ''
+    post:
+      operationId: mentor_threads_create
+      tags:
+      - mentor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ThreadCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ThreadCreateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+          description: ''
+  /api/v1/mentor/threads/{id}:
+    get:
+      operationId: mentor_threads_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadDetail'
+          description: ''
+    delete:
+      operationId: mentor_threads_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/mentor/threads/{id}/messages:
+    post:
+      operationId: mentor_threads_messages_create
+      description: |-
+        Send a message. Streams tokens as SSE, or returns JSON with `stream: false`.
+
+        If the message trips the safety boundary the response is always JSON with `safety` set,
+        the thread is paused, and nothing is stored or sent to a model.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResult'
+            text/event-stream:
+              schema:
+                type: string
+          description: ''
+  /api/v1/mentor/threads/{id}/resume:
+    post:
+      operationId: mentor_threads_resume_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - mentor
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+          description: ''
+  /api/v1/personality:
+    get:
+      operationId: personality_retrieve
+      tags:
+      - personality
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          description: ''
+    post:
+      operationId: personality_create
+      description: Score the assessment. Unanswered items are allowed; the user can
+        retake later.
+      tags:
+      - personality
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          description: ''
+  /api/v1/personality/questions:
+    get:
+      operationId: personality_questions_retrieve
+      tags:
+      - personality
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Questionnaire'
           description: ''
   /api/v1/practices/{id}/logs:
     post:
@@ -815,6 +1600,48 @@ components:
       description: |-
         * `end` - end
         * `abandon` - abandon
+    AdvisorRequestRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required:
+      - query
+    AdvisorResult:
+      type: object
+      properties:
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdvisorSource'
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - answer
+      - safety
+      - sources
+    AdvisorSource:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        summary:
+          type: string
+      required:
+      - author
+      - id
+      - summary
+      - title
     AnswerRequestRequest:
       type: object
       properties:
@@ -928,6 +1755,58 @@ components:
       description: |-
         * `crisis` - crisis
         * `distress` - distress
+    Challenge:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        week_index:
+          type: integer
+          readOnly: true
+        layer:
+          allOf:
+          - $ref: '#/components/schemas/LayerEnum'
+          readOnly: true
+        difficulty:
+          allOf:
+          - $ref: '#/components/schemas/DifficultyEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        detail:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ChallengeStatusEnum'
+          readOnly: true
+        task_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+      required:
+      - detail
+      - difficulty
+      - id
+      - layer
+      - status
+      - task_id
+      - title
+      - week_index
+    ChallengeStatusEnum:
+      enum:
+      - offered
+      - accepted
+      - dismissed
+      type: string
+      description: |-
+        * `offered` - Offered
+        * `accepted` - Accepted
+        * `dismissed` - Dismissed
     ChecklistProgress:
       type: object
       properties:
@@ -949,6 +1828,15 @@ components:
           format: uuid
       required:
       - protocol_id
+    ConnectRequest:
+      type: object
+      properties:
+        account_email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - account_email
     Consent:
       type: object
       properties:
@@ -990,6 +1878,95 @@ components:
       - granted
       - purpose
       - version
+    Dashboard:
+      type: object
+      properties:
+        day_number:
+          type: integer
+        total_days:
+          type: integer
+        sprint_percent:
+          type: integer
+        sprint_goal:
+          type: string
+        alter_ego_name:
+          type: string
+        identity_statement:
+          type: string
+        tone:
+          $ref: '#/components/schemas/ToneEnum'
+        headline:
+          type: string
+        body:
+          type: string
+        insight:
+          type: string
+          nullable: true
+        priority_task:
+          allOf:
+          - $ref: '#/components/schemas/Task'
+          nullable: true
+        key_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyResult'
+        weekly_momentum:
+          type: array
+          items:
+            $ref: '#/components/schemas/Momentum'
+        stats:
+          $ref: '#/components/schemas/DashboardStats'
+        layers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Layer'
+        personality_completed:
+          type: boolean
+        unread_nudges:
+          type: integer
+        ritual_due:
+          type: boolean
+      required:
+      - alter_ego_name
+      - body
+      - day_number
+      - headline
+      - identity_statement
+      - insight
+      - key_results
+      - layers
+      - personality_completed
+      - priority_task
+      - ritual_due
+      - sprint_goal
+      - sprint_percent
+      - stats
+      - tone
+      - total_days
+      - unread_nudges
+      - weekly_momentum
+    DashboardStats:
+      type: object
+      properties:
+        tasks_done_today:
+          type: integer
+        tasks_due_today:
+          type: integer
+        practices_done:
+          type: integer
+        practices_total:
+          type: integer
+        longest_streak:
+          type: integer
+        reading_progress:
+          type: integer
+      required:
+      - longest_streak
+      - practices_done
+      - practices_total
+      - reading_progress
+      - tasks_done_today
+      - tasks_due_today
     DayOffsetEnum:
       enum:
       - 0
@@ -1050,6 +2027,16 @@ components:
           type: string
           format: uuid
           nullable: true
+    DifficultyEnum:
+      enum:
+      - Light
+      - Medium
+      - Hard
+      type: string
+      description: |-
+        * `Light` - Light
+        * `Medium` - Medium
+        * `Hard` - Hard
     EntitlementsEnum:
       enum:
       - protocol
@@ -1070,6 +2057,98 @@ components:
         * `presence` - presence
         * `legacy` - legacy
         * `calendar` - calendar
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        start:
+          type: string
+          format: date-time
+          readOnly: true
+        end:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - end
+      - id
+      - start
+      - title
+    Fact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/FactKindEnum'
+          readOnly: true
+        text:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - kind
+      - text
+    FactKindEnum:
+      enum:
+      - goal
+      - fear
+      - constraint
+      - preference
+      - progress
+      - commitment
+      - insight
+      type: string
+      description: |-
+        * `goal` - Goal
+        * `fear` - Fear
+        * `constraint` - Constraint
+        * `preference` - Preference
+        * `progress` - Progress
+        * `commitment` - Commitment
+        * `insight` - Insight
+    HorizonEnum:
+      enum:
+      - 2y
+      - 5y
+      - life
+      type: string
+      description: |-
+        * `2y` - Two Year
+        * `5y` - Five Year
+        * `life` - Life
+    IdentityResult:
+      type: object
+      properties:
+        me:
+          allOf:
+          - $ref: '#/components/schemas/Me'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - me
+      - safety
     InterviewStep:
       type: object
       properties:
@@ -1104,16 +2183,44 @@ components:
       - question
       - safety
       - status
-    KindEnum:
-      enum:
-      - phone
-      - web
-      - emergency
-      type: string
-      description: |-
-        * `phone` - phone
-        * `web` - web
-        * `emergency` - emergency
+    KeyResult:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        value:
+          type: integer
+        target:
+          type: integer
+        suffix:
+          type: string
+      required:
+      - id
+      - label
+      - suffix
+      - target
+      - value
+    Layer:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/LayerEnum'
+        index:
+          type: integer
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/LayerStatusEnum'
+        progress:
+          type: integer
+      required:
+      - id
+      - index
+      - name
+      - progress
+      - status
     LayerEnum:
       enum:
       - identity
@@ -1132,6 +2239,74 @@ components:
         * `daily_os` - daily_os
         * `presence` - presence
         * `legacy` - legacy
+    LayerStatusEnum:
+      enum:
+      - calibrating
+      - active
+      - locked_in
+      type: string
+      description: |-
+        * `calibrating` - calibrating
+        * `active` - active
+        * `locked_in` - locked_in
+    Library:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingItem'
+        stats:
+          $ref: '#/components/schemas/Stats'
+        recommendation:
+          allOf:
+          - $ref: '#/components/schemas/Recommendation'
+          nullable: true
+        roadmap:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoadmapPhase'
+        destruction_test_template:
+          type: string
+        sequencing_rationale:
+          type: string
+      required:
+      - destruction_test_template
+      - items
+      - recommendation
+      - roadmap
+      - sequencing_rationale
+      - stats
+    Link:
+      type: object
+      properties:
+        provider:
+          type: string
+          readOnly: true
+        account_email:
+          type: string
+          readOnly: true
+        mode:
+          allOf:
+          - $ref: '#/components/schemas/LinkModeEnum'
+          readOnly: true
+        connected_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - account_email
+      - connected_at
+      - mode
+      - provider
+    LinkModeEnum:
+      enum:
+      - demo
+      - google
+      type: string
+      description: |-
+        * `demo` - Demo
+        * `google` - Google
     LogoutRequest:
       type: object
       properties:
@@ -1162,6 +2337,10 @@ components:
           maxLength: 8
         ai_training_opt_out:
           type: boolean
+        mentor_nudges:
+          type: boolean
+        weekly_digest:
+          type: boolean
         created_at:
           type: string
           format: date-time
@@ -1175,17 +2354,338 @@ components:
           items:
             $ref: '#/components/schemas/EntitlementsEnum'
           readOnly: true
+        analytics_opt_in:
+          type: boolean
+          readOnly: true
+        alter_ego_name:
+          type: string
+          readOnly: true
+        identity_statement:
+          type: string
+          readOnly: true
       required:
+      - alter_ego_name
+      - analytics_opt_in
       - created_at
       - email
       - entitlements
       - id
+      - identity_statement
       - tier
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        body:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - body
+      - created_at
+      - id
+      - role
+    MessageRequestRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        stream:
+          type: boolean
+          default: true
+      required:
+      - content
+    MessageResult:
+      type: object
+      description: JSON result when not streaming, or when the safety boundary replaced
+        the reply.
+      properties:
+        user_message:
+          allOf:
+          - $ref: '#/components/schemas/Message'
+          nullable: true
+        reply:
+          allOf:
+          - $ref: '#/components/schemas/Message'
+          nullable: true
+        thread:
+          $ref: '#/components/schemas/Thread'
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - reply
+      - safety
+      - thread
+      - user_message
+    Milestone:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        horizon:
+          allOf:
+          - $ref: '#/components/schemas/HorizonEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        detail:
+          type: string
+          readOnly: true
+        due_label:
+          type: string
+          readOnly: true
+        progress:
+          type: integer
+          readOnly: true
+        done:
+          type: boolean
+          readOnly: true
+        origin:
+          allOf:
+          - $ref: '#/components/schemas/OriginEnum'
+          readOnly: true
+        position:
+          type: integer
+          readOnly: true
+      required:
+      - detail
+      - done
+      - due_label
+      - horizon
+      - id
+      - origin
+      - position
+      - progress
+      - title
+    MilestoneCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        horizon:
+          $ref: '#/components/schemas/HorizonEnum'
+        detail:
+          type: string
+          default: ''
+          maxLength: 1000
+        due_label:
+          type: string
+          default: ''
+          maxLength: 40
+      required:
+      - horizon
+      - title
+    MilestoneResult:
+      type: object
+      properties:
+        milestone:
+          allOf:
+          - $ref: '#/components/schemas/Milestone'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - milestone
+      - safety
+    Momentum:
+      type: object
+      properties:
+        day:
+          type: string
+        date:
+          type: string
+          format: date
+        deep_work_hours:
+          type: number
+          format: double
+        practices:
+          type: integer
+      required:
+      - date
+      - day
+      - deep_work_hours
+      - practices
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/NoteKindEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        source:
+          type: string
+          readOnly: true
+        body:
+          type: string
+          readOnly: true
+        tags:
+          readOnly: true
+        item_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - body
+      - created_at
+      - id
+      - item_id
+      - kind
+      - source
+      - tags
+      - title
+    NoteCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        body:
+          type: string
+          minLength: 1
+          maxLength: 6000
+        source:
+          type: string
+          default: ''
+          maxLength: 300
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/NoteKindEnum'
+          default: note
+        tags:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 24
+          maxItems: 6
+        item_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - body
+      - title
+    NoteKindEnum:
+      enum:
+      - note
+      - collision
+      - destruction_test
+      type: string
+      description: |-
+        * `note` - Note
+        * `collision` - Collision
+        * `destruction_test` - Destruction Test
+    NoteResult:
+      type: object
+      properties:
+        note:
+          allOf:
+          - $ref: '#/components/schemas/Note'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - note
+      - safety
+    Nudge:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/NudgeKindEnum'
+          readOnly: true
+        body:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        read:
+          type: boolean
+          readOnly: true
+      required:
+      - body
+      - created_at
+      - id
+      - kind
+      - read
+    NudgeKindEnum:
+      enum:
+      - reengagement
+      - ritual
+      - checkin
+      - streak
+      type: string
+      description: |-
+        * `reengagement` - Reengagement
+        * `ritual` - Ritual
+        * `checkin` - Checkin
+        * `streak` - Streak
+    OriginEnum:
+      enum:
+      - protocol
+      - user
+      type: string
+      description: |-
+        * `protocol` - Protocol
+        * `user` - User
     PatchedDeepWorkUpdateRequest:
       type: object
       properties:
         action:
           $ref: '#/components/schemas/ActionEnum'
+    PatchedIdentityEditRequest:
+      type: object
+      properties:
+        alter_ego_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        identity_statement:
+          type: string
+          minLength: 1
+          maxLength: 1200
     PatchedMeRequest:
       type: object
       properties:
@@ -1202,11 +2702,63 @@ components:
           maxLength: 8
         ai_training_opt_out:
           type: boolean
+        mentor_nudges:
+          type: boolean
+        weekly_digest:
+          type: boolean
+    PatchedMilestoneUpdateRequest:
+      type: object
+      properties:
+        done:
+          type: boolean
+        progress:
+          type: integer
+          maximum: 100
+          minimum: 0
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        detail:
+          type: string
+          maxLength: 1000
+    PatchedReadingItemUpdateRequest:
+      type: object
+      properties:
+        progress:
+          type: integer
+          maximum: 100
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/ReadingStatusEnum'
     PatchedTaskUpdateRequest:
       type: object
       properties:
         done:
           type: boolean
+    PersonalityQuestion:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        trait:
+          $ref: '#/components/schemas/TraitEnum'
+      required:
+      - id
+      - text
+      - trait
+    PhaseEnum:
+      enum:
+      - now
+      - next_90_days
+      - this_year
+      type: string
+      description: |-
+        * `now` - now
+        * `next_90_days` - next_90_days
+        * `this_year` - this_year
     PracticeLog:
       type: object
       properties:
@@ -1285,6 +2837,18 @@ components:
       required:
       - key
       - question
+    Prompts:
+      type: object
+      properties:
+        prompts:
+          type: array
+          items:
+            type: string
+        persona_name:
+          type: string
+      required:
+      - persona_name
+      - prompts
     Protocol:
       type: object
       properties:
@@ -1294,7 +2858,7 @@ components:
           readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusEnum'
+          - $ref: '#/components/schemas/ProtocolStatusEnum'
           readOnly: true
         schema_version:
           type: string
@@ -1360,6 +2924,16 @@ components:
       - created_at
       - key
       - revision
+    ProtocolStatusEnum:
+      enum:
+      - generating
+      - ready
+      - failed
+      type: string
+      description: |-
+        * `generating` - Generating
+        * `ready` - Ready
+        * `failed` - Failed
     PurposeEnum:
       enum:
       - terms
@@ -1404,6 +2978,20 @@ components:
       - question
       - stage
       - suggestions
+    Questionnaire:
+      type: object
+      properties:
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonalityQuestion'
+        traits:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraitInfo'
+      required:
+      - questions
+      - traits
     Rating:
       type: object
       properties:
@@ -1435,6 +3023,101 @@ components:
           nullable: true
       required:
       - safety
+    ReadingItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sequence:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        author:
+          type: string
+          readOnly: true
+        why_now:
+          type: string
+          readOnly: true
+        estimated_hours:
+          type: integer
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ReadingStatusEnum'
+          readOnly: true
+        progress:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - author
+      - estimated_hours
+      - finished_at
+      - id
+      - progress
+      - sequence
+      - started_at
+      - status
+      - title
+      - why_now
+    ReadingStatusEnum:
+      enum:
+      - want
+      - reading
+      - finished
+      type: string
+      description: |-
+        * `want` - Want
+        * `reading` - Reading
+        * `finished` - Finished
+    Recommendation:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/RecommendationKindEnum'
+        title:
+          type: string
+        author:
+          type: string
+        reason:
+          type: string
+        item_id:
+          type: string
+          format: uuid
+          nullable: true
+        source_id:
+          type: string
+          nullable: true
+      required:
+      - author
+      - item_id
+      - kind
+      - reason
+      - source_id
+      - title
+    RecommendationKindEnum:
+      enum:
+      - finish
+      - start
+      - discover
+      type: string
+      description: |-
+        * `finish` - finish
+        * `start` - start
+        * `discover` - discover
     Reflection:
       type: object
       properties:
@@ -1563,6 +3246,90 @@ components:
       - access
       - refresh
       - user
+    ResetRequest:
+      type: object
+      properties:
+        confirm:
+          type: boolean
+      required:
+      - confirm
+    ResetResult:
+      type: object
+      properties:
+        protocols:
+          type: integer
+        interviews:
+          type: integer
+      required:
+      - interviews
+      - protocols
+    Result:
+      type: object
+      properties:
+        scores:
+          $ref: '#/components/schemas/Scores'
+        completed_at:
+          type: string
+          format: date-time
+        answered:
+          type: integer
+      required:
+      - answered
+      - completed_at
+      - scores
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        scheduled_for:
+          type: string
+          format: date
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - completed_at
+      - id
+      - scheduled_for
+    ReviewCompleteRequest:
+      type: object
+      properties:
+        on_track:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        change:
+          type: string
+          default: ''
+          maxLength: 2000
+      required:
+      - on_track
+    ReviewResult:
+      type: object
+      properties:
+        review:
+          allOf:
+          - $ref: '#/components/schemas/Review'
+          nullable: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - review
+      - safety
+    ReviewScheduleRequest:
+      type: object
+      properties:
+        scheduled_for:
+          type: string
+          format: date
     ReviseRequestRequest:
       type: object
       properties:
@@ -1692,6 +3459,29 @@ components:
       - tasks_done
       - tasks_due
       - week_start
+    RoadmapPhase:
+      type: object
+      properties:
+        phase:
+          $ref: '#/components/schemas/PhaseEnum'
+        focus:
+          type: string
+        titles:
+          type: array
+          items:
+            type: string
+      required:
+      - focus
+      - phase
+      - titles
+    RoleEnum:
+      enum:
+      - user
+      - mentor
+      type: string
+      description: |-
+        * `user` - User
+        * `mentor` - Mentor
     SafetyNotice:
       type: object
       description: Returned with HTTP 200 instead of a coaching reply when the boundary
@@ -1722,7 +3512,7 @@ components:
         contact:
           type: string
         kind:
-          $ref: '#/components/schemas/KindEnum'
+          $ref: '#/components/schemas/SafetyResourceKindEnum'
         note:
           type: string
       required:
@@ -1731,6 +3521,16 @@ components:
       - kind
       - name
       - note
+    SafetyResourceKindEnum:
+      enum:
+      - phone
+      - web
+      - emergency
+      type: string
+      description: |-
+        * `phone` - phone
+        * `web` - web
+        * `emergency` - emergency
     ScheduleBlock:
       type: object
       properties:
@@ -1750,14 +3550,35 @@ components:
       - label
       - layer
       - start
+    Scores:
+      type: object
+      properties:
+        openness:
+          type: integer
+        conscientiousness:
+          type: integer
+        extraversion:
+          type: integer
+        agreeableness:
+          type: integer
+        stability:
+          type: integer
+      required:
+      - agreeableness
+      - conscientiousness
+      - extraversion
+      - openness
+      - stability
     SourceEnum:
       enum:
       - checklist30
       - sprint90
+      - mentor
       type: string
       description: |-
         * `checklist30` - Checklist 30
         * `sprint90` - Sprint 90
+        * `mentor` - Mentor
     Sprint:
       type: object
       properties:
@@ -1814,16 +3635,83 @@ components:
       - is_current
       - tasks
       - total
-    StatusEnum:
+    Stats:
+      type: object
+      properties:
+        reading:
+          type: integer
+        finished:
+          type: integer
+        want:
+          type: integer
+        notes:
+          type: integer
+        average_progress:
+          type: integer
+      required:
+      - average_progress
+      - finished
+      - notes
+      - reading
+      - want
+    Status:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        link:
+          allOf:
+          - $ref: '#/components/schemas/Link'
+          nullable: true
+        demo_notice:
+          type: string
+          nullable: true
+      required:
+      - connected
+      - demo_notice
+      - link
+    SubmitRequest:
+      type: object
+      properties:
+        answers:
+          type: object
+          additionalProperties:
+            type: integer
+            maximum: 5
+            minimum: 1
+      required:
+      - answers
+    Summary:
+      type: object
+      properties:
+        total:
+          type: integer
+        done:
+          type: integer
+        average_progress:
+          type: integer
+      required:
+      - average_progress
+      - done
+      - total
+    SyncResult:
+      type: object
+      properties:
+        created:
+          type: integer
+        mode:
+          $ref: '#/components/schemas/SyncResultModeEnum'
+      required:
+      - created
+      - mode
+    SyncResultModeEnum:
       enum:
-      - generating
-      - ready
-      - failed
+      - demo
+      - google
       type: string
       description: |-
-        * `generating` - Generating
-        * `ready` - Ready
-        * `failed` - Failed
+        * `demo` - demo
+        * `google` - google
     Task:
       type: object
       properties:
@@ -1889,6 +3777,90 @@ components:
       - title
       - trait_id
       - week_index
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ThreadKindEnum'
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ThreadStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        message_count:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - kind
+      - message_count
+      - status
+      - title
+      - updated_at
+    ThreadCreateKindEnum:
+      enum:
+      - chat
+      - weekly
+      - sprint
+      type: string
+      description: |-
+        * `chat` - chat
+        * `weekly` - weekly
+        * `sprint` - sprint
+    ThreadCreateRequest:
+      type: object
+      properties:
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ThreadCreateKindEnum'
+          default: chat
+    ThreadDetail:
+      type: object
+      properties:
+        thread:
+          $ref: '#/components/schemas/Thread'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+      required:
+      - messages
+      - thread
+    ThreadKindEnum:
+      enum:
+      - chat
+      - weekly
+      - sprint
+      type: string
+      description: |-
+        * `chat` - Chat
+        * `weekly` - Weekly
+        * `sprint` - Sprint
+    ThreadStatusEnum:
+      enum:
+      - open
+      - paused_safety
+      type: string
+      description: |-
+        * `open` - Open
+        * `paused_safety` - Paused Safety
     TierEnum:
       enum:
       - core
@@ -1897,6 +3869,23 @@ components:
       description: |-
         * `core` - core
         * `full` - full
+    Timeline:
+      type: object
+      properties:
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+        summary:
+          $ref: '#/components/schemas/Summary'
+        next_review:
+          allOf:
+          - $ref: '#/components/schemas/Review'
+          nullable: true
+      required:
+      - milestones
+      - next_review
+      - summary
     TokenObtainPair:
       type: object
       properties:
@@ -1997,6 +3986,36 @@ components:
       - reflection_prompt
       - statement
       - streak
+    TraitEnum:
+      enum:
+      - openness
+      - conscientiousness
+      - extraversion
+      - agreeableness
+      - stability
+      type: string
+      description: |-
+        * `openness` - openness
+        * `conscientiousness` - conscientiousness
+        * `extraversion` - extraversion
+        * `agreeableness` - agreeableness
+        * `stability` - stability
+    TraitInfo:
+      type: object
+      properties:
+        trait:
+          $ref: '#/components/schemas/TraitEnum'
+        name:
+          type: string
+        high:
+          type: string
+        low:
+          type: string
+      required:
+      - high
+      - low
+      - name
+      - trait
     TraitRatingRequestRequest:
       type: object
       properties:

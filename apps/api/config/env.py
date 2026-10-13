@@ -33,6 +33,10 @@ class Env(BaseSettings):
     fake_llm_delay_ms: int = Field(default=0, ge=0)
     anthropic_model: str = ""
     sse_poll_seconds: float = Field(default=0.5, ge=0)
+    mentor_persona_name: str = "Mentor"
+    mentor_throttle_rate: str = "30/hour"
+    # Alpha invitees get the Full tier. Off by default so production stays Core.
+    alpha_grant_full: bool = False
 
     @model_validator(mode="after")
     def _no_placeholder_secret_in_production(self) -> "Env":

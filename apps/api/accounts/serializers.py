@@ -52,6 +52,9 @@ class RegisterSerializer(serializers.Serializer):
 class MeSerializer(serializers.ModelSerializer):
     tier = serializers.SerializerMethodField()
     entitlements = serializers.SerializerMethodField()
+    analytics_opt_in = serializers.SerializerMethodField()
+    alter_ego_name = serializers.SerializerMethodField()
+    identity_statement = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -62,11 +65,40 @@ class MeSerializer(serializers.ModelSerializer):
             "timezone",
             "locale",
             "ai_training_opt_out",
+            "mentor_nudges",
+            "weekly_digest",
             "created_at",
             "tier",
             "entitlements",
+            "analytics_opt_in",
+            "alter_ego_name",
+            "identity_statement",
         ]
-        read_only_fields = ["id", "email", "created_at", "tier", "entitlements"]
+        read_only_fields = [
+            "id", "email", "created_at", "tier", "entitlements", "analytics_opt_in",
+            "alter_ego_name", "identity_statement",
+        ]
+
+    def get_analytics_opt_in(self, obj: User) -> bool:
+        from .models import has_consent
+
+        return has_consent(obj, ConsentPurpose.ANALYTICS)
+
+    def _identity(self, obj: User) -> dict:
+        from protocol.models import Protocol, ProtocolStatus
+        from protocol.services import current_sections
+
+        p = Protocol.objects.filter(user=obj, status=ProtocolStatus.READY).order_by("-created_at").first()
+        if p is None:
+            return {}
+        sec = current_sections(p).get("identity")
+        return sec.content if sec else {}
+
+    def get_alter_ego_name(self, obj: User) -> str:
+        return self._identity(obj).get("alter_ego_name", "")
+
+    def get_identity_statement(self, obj: User) -> str:
+        return self._identity(obj).get("identity_statement", "")
 
     @extend_schema_field(serializers.ChoiceField(choices=["core", "full"]))
     def get_tier(self, obj: User) -> str:
@@ -85,6 +117,20 @@ class RegisterResponseSerializer(serializers.Serializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+class IdentityEditSerializer(serializers.Serializer):
+    alter_ego_name = serializers.CharField(max_length=200, required=False)
+    identity_statement = serializers.CharField(max_length=1200, required=False)
+
+
+class ResetSerializer(serializers.Serializer):
+    confirm = serializers.BooleanField()
+
+
+class ResetResultSerializer(serializers.Serializer):
+    protocols = serializers.IntegerField()
+    interviews = serializers.IntegerField()
 
 
 class DeleteAccountSerializer(serializers.Serializer):

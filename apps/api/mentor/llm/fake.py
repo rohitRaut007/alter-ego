@@ -5,10 +5,13 @@ not real model output. Real prompts live in mentor/prompts and are exercised in 
 """
 
 import json
+import re
 import time
+from collections.abc import Iterator
 from typing import Any
 
 from .base import LLMOutputError, LLMResult
+from .fake_tasks import JSON_TASKS, mentor_reply_text
 
 MODEL_NAME = "fake-llm-1"
 
@@ -261,11 +264,23 @@ class FakeLLM:
             data = self._section(payload)
         elif task == "protocol_section_revise":
             data = self._revise(payload)
+        elif task in JSON_TASKS:
+            data = JSON_TASKS[task](payload)
         else:
             raise LLMOutputError(f"FakeLLM does not implement task {task!r}")
         return LLMResult(data=data, model=MODEL_NAME,
                          input_tokens=_tokens(system) + _tokens(payload),
                          output_tokens=_tokens(data))
+
+    def stream_text(self, *, task: str, prompt_version: str, system: str,
+                    payload: dict[str, Any], max_output_tokens: int) -> Iterator[str]:
+        if task != "mentor_reply":
+            raise LLMOutputError(f"FakeLLM cannot stream task {task!r}")
+        words = re.findall(r"\S+\s*", mentor_reply_text(payload))
+        for i in range(0, len(words), 3):
+            if self.delay_ms:
+                time.sleep(min(self.delay_ms, 40) / 1000)
+            yield "".join(words[i : i + 3])
 
     def _interview_turn(self, payload: dict[str, Any]) -> dict[str, Any]:
         answers = payload["answers"]

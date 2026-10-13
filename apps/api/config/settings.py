@@ -31,6 +31,11 @@ INSTALLED_APPS = [
     "protocol",
     "character",
     "daily_os",
+    "knowledge",
+    "legacy",
+    "personality",
+    "calendars",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -94,7 +99,10 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_RATES": {"auth": env.auth_throttle_rate},
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": env.auth_throttle_rate,
+        "mentor": env.mentor_throttle_rate,
+    },
 }
 
 SIMPLE_JWT = {
@@ -112,6 +120,21 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
+    # Same-named fields with different choice sets would otherwise get hash-suffixed names.
+    "ENUM_NAME_OVERRIDES": {
+        "ProtocolStatusEnum": "config.enums.PROTOCOL_STATUS",
+        "ThreadStatusEnum": "config.enums.THREAD_STATUS",
+        "ChallengeStatusEnum": "config.enums.CHALLENGE_STATUS",
+        "ReadingStatusEnum": "config.enums.READING_STATUS",
+        "NudgeKindEnum": "config.enums.NUDGE_KIND",
+        "ThreadKindEnum": "config.enums.THREAD_KIND",
+        "FactKindEnum": "config.enums.FACT_KIND",
+        "NoteKindEnum": "config.enums.NOTE_KIND",
+        "RecommendationKindEnum": "knowledge.views.RECOMMENDATION_KINDS",
+        "LayerEnum": "daily_os.serializers.LAYERS",
+        "ToneEnum": "daily_os.serializers.TONES",
+        "HorizonEnum": "config.enums.HORIZON",
+    },
 }
 
 CORS_ALLOWED_ORIGINS = env.cors_origins
@@ -121,6 +144,8 @@ LLM_PROVIDER = env.llm_provider
 FAKE_LLM_DELAY_MS = env.fake_llm_delay_ms
 ANTHROPIC_MODEL = env.anthropic_model  # read by the real provider; never hardcoded
 SSE_POLL_SECONDS = env.sse_poll_seconds
+MENTOR_PERSONA_NAME = env.mentor_persona_name
+ALPHA_GRANT_FULL = env.alpha_grant_full
 
 CELERY_BROKER_URL = env.redis_url or "memory://"
 CELERY_TASK_ALWAYS_EAGER = not env.redis_url

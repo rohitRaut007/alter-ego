@@ -284,10 +284,44 @@ def run_generation(protocol_id: str, llm: LLMService | None = None) -> None:
 
 
 def _sync_trackables(protocol: Protocol) -> None:
-    """Refresh Daily OS and Character data. Imported lazily to avoid a cycle."""
+    """Refresh Daily OS, Character, Knowledge and Legacy data. Imported lazily (cycles)."""
     from daily_os.services import sync_protocol
+    from knowledge.services import sync_reading
+    from legacy.services import sync_milestones
 
     sync_protocol(protocol)
+    sync_reading(protocol)
+    sync_milestones(protocol)
+
+
+@transaction.atomic
+def edit_identity(
+    protocol: Protocol, *, alter_ego_name: str | None, identity_statement: str | None
+) -> ProtocolSection:
+    """Let the user edit their alter ego name and identity statement directly (no model)."""
+    from .schema.v1 import Identity
+
+    if protocol.status != ProtocolStatus.READY:
+        raise InterviewError("The protocol is not ready to edit.")
+    current = current_sections(protocol)["identity"]
+    content = dict(current.content)
+    if alter_ego_name is not None:
+        content["alter_ego_name"] = alter_ego_name.strip()
+    if identity_statement is not None:
+        content["identity_statement"] = identity_statement.strip()
+    try:
+        parsed = Identity.model_validate(content)
+    except ValidationError as exc:
+        raise InterviewError("Those values are not valid for the identity section.") from exc
+    out = parsed.model_dump(mode="json", exclude_none=True)
+    if find_banned_phrases(out):
+        raise InterviewError("Outcome-promising language is not allowed in the protocol.")
+    revision = ProtocolSection.objects.create(
+        protocol=protocol, key="identity", revision=current.revision + 1, content=out,
+        instruction="Edited directly by the user", prompt_version="manual", model="user",
+    )
+    assemble_document(protocol)
+    return revision
 
 
 # --- revision ---------------------------------------------------------------
@@ -320,6 +354,6 @@ def revise_section(
         instruction=instruction, prompt_version=prompt_version, model=model,
     )
     assemble_document(protocol)  # the revised whole must still be valid
-    if key in ("character", "checklist_30", "sprint_90"):
+    if key in ("character", "checklist_30", "sprint_90", "knowledge", "legacy"):
         _sync_trackables(protocol)
     return revision

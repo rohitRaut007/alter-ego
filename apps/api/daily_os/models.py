@@ -26,6 +26,7 @@ class Sprint(models.Model):
 class TaskSource(models.TextChoices):
     CHECKLIST_30 = "checklist30"
     SPRINT_90 = "sprint90"
+    MENTOR = "mentor"
 
 
 class Task(models.Model):
