@@ -67,3 +67,6 @@ Base path `/api/v1`. JSON, `snake_case`. Auth: `Authorization: Bearer <access>`.
 - Safety: 200 with `{safety: {paused: true, message, resources[]}}` instead of a coaching reply.
 - Versioning: breaking changes under `/api/v2`; additive changes are non-breaking.
 - Contract tests: schema snapshot test in API repo, generated-client typecheck, MSW-based client tests in `packages/api-client`.
+
+## Phase 2 as built
+Added to the contract above: `GET /interviews/current` (resume), `GET /protocols/latest`. `POST /interviews` returns 201 and resumes an open interview instead of creating a second one. `POST /interviews/{id}/turns` returns `{question | null, acknowledgement, progress, done}`; `POST /interviews/{id}/complete` returns 202 and is idempotent. `POST /protocols/{id}/sections/{key}/revise` returns the new revision, 409 for unknown sections or protocols that are not ready, and 422 when the revised output fails validation after retries. `POST /protocols/{id}/rating` returns 204. Interview and protocol endpoints require the `protocol` entitlement (403 `entitlement_required`). The OpenAPI file is the authority; the typed client is generated from it.

@@ -20,6 +20,7 @@ AI-powered personal transformation platform. Product source of truth: `docs/PRD.
 | Web dev | `pnpm --filter web dev` (needs `apps/web/.env` from `.env.example`) |
 | API dev | `cd apps/api && python manage.py migrate && python manage.py runserver` (env from root `.env`) |
 | Regenerate OpenAPI + client | `pnpm gen:api` (CI fails if this leaves a diff) |
+| Re-export protocol contract | `cd apps/api && python manage.py export_protocol_contract` (a test fails on drift) |
 | Typecheck / lint / test / build | `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build` |
 | API tests | `cd apps/api && .venv/Scripts/python -m pytest` (sqlite default; set `DATABASE_URL` for Postgres) |
 

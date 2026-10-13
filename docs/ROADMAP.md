@@ -56,3 +56,7 @@ North star (trait or habit change within 30 days) is instrumented from Phase 3 (
 3. Crisis resource list reviewed by a human.
 4. Key backup and rotation runbook for field encryption.
 5. Privacy notice and consent text reviewed.
+
+## Status
+- **Phase 1 Foundation: done** (auth, consent ledger, entitlements, generated client, CI).
+- **Phase 2 Onboarding and protocol: built against a fake LLM.** Interview, async generation with validation and retry, SSE section reveal, per-section revision, PDF export, accuracy rating and Django-admin review queue all work end to end. Not done: a real model provider (blocked on persona and model id), the safety boundary (Phase 4), interview quality tuning against real answers, and the 20-user accuracy test, which needs the real provider.

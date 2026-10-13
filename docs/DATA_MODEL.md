@@ -78,3 +78,12 @@ erDiagram
 - `protocol.json` stores the whole validated document; `protocol_section` rows enable revising one section without regeneration. Sections are the source of truth after first revision; `protocol.json` is regenerated from sections on read.
 - Streaks are derived from `practice_log`, not stored.
 - Hard delete cascades from `user`; `llm_usage` and `safety_event` are anonymised (user nulled) rather than retained with identity.
+
+## Phase 2 as built
+- `protocol_section.content` and `instruction` are **field-encrypted** (not plain jsonb as first drawn): section content embeds the user's own words, fears and constraints. Reviewers decrypt through the admin; every view is logged by protocol id only.
+- `interview_turn` also stores `acknowledgement`, `progress`, `suggestions`, `multi_select`, `placeholder` so an interview can resume exactly.
+- `protocol_event` is an append-only progress log (type + small data) that the SSE endpoint replays.
+- `protocol.review_required` is true for the first 500 protocols; `protocol_review` rows are written from Django admin.
+- `llm_usage` records task, model, prompt version and token counts only (no content).
+- Revisions are append-only rows; the highest `revision` per `(protocol, key)` is current.
+- `checklist_30` is stored as a section wrapper `{tasks: [...]}`; the assembled document exposes the bare list.

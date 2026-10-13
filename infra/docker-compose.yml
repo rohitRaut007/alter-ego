@@ -10,6 +10,10 @@ x-api-env: &api-env
   REDIS_URL: redis://redis:6379/0
   CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
   SENTRY_DSN: ${SENTRY_DSN:-}
+  # Dev-only key. Generate real ones with: python -c "import os,base64;print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
+  FIELD_ENCRYPTION_KEYS: ${FIELD_ENCRYPTION_KEYS:-dev:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+  LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+  FAKE_LLM_DELAY_MS: ${FAKE_LLM_DELAY_MS:-400}
 
 services:
   postgres:

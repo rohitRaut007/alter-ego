@@ -101,6 +101,9 @@ Constraints: `layer` is one of `identity|character|knowledge|mission|daily_os|pr
     { "id": "c1", "title": "Define this week's single outcome", "detail": "One sentence.", "layer": "mission", "due_day": 1, "minutes": 15, "priority": true }
   ],
   "sprint_90": { "goal": "...", "weeks": [] },
-  "disclaimer": "This protocol is a planning framework based on your answers. It is not professional advice and carries no guarantee of results."
+  "disclaimer": "This protocol is a planning framework built from your answers. It is not professional advice and it does not promise any particular result. You can change any part of it."
 }
 ```
+
+## Contract files
+`packages/validation/protocol.v1.schema.json` (JSON Schema) and `packages/validation/fixtures/protocol.v1.example.json` are exported from the pydantic models with `python manage.py export_protocol_contract`. A backend test fails if they drift from the models, and the zod mirror in `packages/validation/src/protocol.ts` is tested against the same example document. The `checklist_30` section is generated as `{ "tasks": [...] }`; the assembled document exposes it as the bare list shown above.
