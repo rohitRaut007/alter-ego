@@ -1,0 +1,798 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-10-14T05:30:00Z",
+  "identity": {
+    "archetype": "The Deliberate Builder",
+    "thesis": "Turns a stated ambition into repeatable daily work. Starting point: “I want to become a founder who ships a product people pay for.”.",
+    "alter_ego_name": "The Operator",
+    "identity_statement": "I do the work in front of me, review it honestly, and adjust.",
+    "legacy_definition": "A product with 50 paying customers and a revenue number I can check.",
+    "why_this_fits": [
+      "You named this failure pattern: “I start projects and abandon them when they get hard.”.",
+      "You described your working style as: “Deep morning blocks, and I lose focus when messages pile up.”."
+    ]
+  },
+  "character": {
+    "traits": [
+      {
+        "id": "follow_through",
+        "name": "Follow-through",
+        "statement": "I finish what I commit to this week.",
+        "rationale": "You said: “I start projects and abandon them when they get hard.”. This trait targets that directly.",
+        "practices": [
+          {
+            "id": "follow_through_p1",
+            "description": "Write tomorrow's single must-finish task before you stop work.",
+            "cadence": "daily",
+            "minutes": 10
+          }
+        ],
+        "failure_mode": "Starting new work to avoid finishing old work.",
+        "monthly_reflection_prompt": "Where did I stop early this month, and what was I avoiding?"
+      },
+      {
+        "id": "honest_review",
+        "name": "Honest review",
+        "statement": "I look at what happened, not what I intended.",
+        "rationale": "A system only improves if the review is accurate.",
+        "practices": [
+          {
+            "id": "honest_review_p1",
+            "description": "Answer the three evening reflection questions in under five minutes.",
+            "cadence": "daily",
+            "minutes": 10
+          }
+        ],
+        "failure_mode": "Reviewing only the wins.",
+        "monthly_reflection_prompt": "Which review did I skip, and why?"
+      },
+      {
+        "id": "deep_focus",
+        "name": "Deep focus",
+        "statement": "I protect uninterrupted time for the hard work.",
+        "rationale": "Your capacity: “Two hours a day, and visible change within 90 days.”. Focus time is the scarce resource.",
+        "practices": [
+          {
+            "id": "deep_focus_p1",
+            "description": "One timed deep work block with notifications off.",
+            "cadence": "daily",
+            "minutes": 10
+          }
+        ],
+        "failure_mode": "Switching context at the first friction.",
+        "monthly_reflection_prompt": "What interrupted my best blocks?"
+      },
+      {
+        "id": "steady_courage",
+        "name": "Steady courage",
+        "statement": "I take the uncomfortable step on schedule.",
+        "rationale": "You named this fear: “That I stay a person with a lot of potential and nothing to show.”.",
+        "practices": [
+          {
+            "id": "steady_courage_p1",
+            "description": "Do one thing today that you have been postponing.",
+            "cadence": "daily",
+            "minutes": 10
+          }
+        ],
+        "failure_mode": "Waiting until I feel ready.",
+        "monthly_reflection_prompt": "What did I avoid that mattered?"
+      }
+    ]
+  },
+  "knowledge": {
+    "reading_list": [
+      {
+        "id": "r1",
+        "title": "Deep Work",
+        "author": "Cal Newport",
+        "why_now": "Protects the focus block your plan depends on.",
+        "sequence": 1,
+        "estimated_hours": 8
+      },
+      {
+        "id": "r2",
+        "title": "The War of Art",
+        "author": "Steven Pressfield",
+        "why_now": "Addresses starting and not finishing.",
+        "sequence": 2,
+        "estimated_hours": 5
+      },
+      {
+        "id": "r3",
+        "title": "Atomic Habits",
+        "author": "James Clear",
+        "why_now": "Turns the practices into a repeatable system.",
+        "sequence": 3,
+        "estimated_hours": 7
+      },
+      {
+        "id": "r4",
+        "title": "The Mom Test",
+        "author": "Rob Fitzpatrick",
+        "why_now": "Sharpens how you learn from real users.",
+        "sequence": 4,
+        "estimated_hours": 4
+      },
+      {
+        "id": "r5",
+        "title": "Thinking, Fast and Slow",
+        "author": "Daniel Kahneman",
+        "why_now": "Improves judgement under uncertainty.",
+        "sequence": 5,
+        "estimated_hours": 14
+      },
+      {
+        "id": "r6",
+        "title": "Man's Search for Meaning",
+        "author": "Viktor Frankl",
+        "why_now": "Anchors the long-horizon reason for the work.",
+        "sequence": 6,
+        "estimated_hours": 5
+      }
+    ],
+    "sequencing_rationale": "Execution habits first, then judgement, then long-horizon meaning.",
+    "destruction_test_template": "State the strongest argument against this book's main claim, then test it against your own situation. Keep what survives.",
+    "weekly_focus_domains": [
+      "Developer tools for small teams, specifically a deployment dashboard."
+    ]
+  },
+  "mission": {
+    "statement": "Build in this domain: Developer tools for small teams, specifically a deployment dashboard..",
+    "strategy": "Ship small, learn from real use, and review weekly against the 90-day sprint.",
+    "roadmap": [
+      {
+        "name": "Foundation",
+        "horizon_weeks": 4,
+        "outcomes": [
+          "A clear weekly cadence",
+          "One shipped artifact"
+        ]
+      },
+      {
+        "name": "Traction",
+        "horizon_weeks": 8,
+        "outcomes": [
+          "Repeatable output each week",
+          "First external feedback"
+        ]
+      },
+      {
+        "name": "Compounding",
+        "horizon_weeks": 12,
+        "outcomes": [
+          "A measurable result against the two-year outcome"
+        ]
+      }
+    ],
+    "risks": [
+      "Pattern to watch: I start projects and abandon them when they get hard.",
+      "Overcommitting beyond stated capacity."
+    ],
+    "execution_system": "Daily plan, weekly output ritual, monthly review of the whole system."
+  },
+  "daily_os": {
+    "schedule": [
+      {
+        "start": "06:00",
+        "end": "06:30",
+        "label": "Plan the day",
+        "layer": "daily_os",
+        "kind": "admin"
+      },
+      {
+        "start": "06:30",
+        "end": "08:30",
+        "label": "Deep work",
+        "layer": "mission",
+        "kind": "deep_work"
+      },
+      {
+        "start": "12:30",
+        "end": "13:00",
+        "label": "Reading",
+        "layer": "knowledge",
+        "kind": "learning"
+      },
+      {
+        "start": "17:30",
+        "end": "18:00",
+        "label": "Character practice",
+        "layer": "character",
+        "kind": "practice"
+      },
+      {
+        "start": "21:00",
+        "end": "21:15",
+        "label": "Evening reflection",
+        "layer": "daily_os",
+        "kind": "recovery"
+      }
+    ],
+    "deep_work_minutes_per_day": 120,
+    "shutdown_ritual": "Write tomorrow's first action and close the laptop.",
+    "reflection_questions": [
+      "What compounded today?",
+      "What leaked?",
+      "What is tomorrow's first action?"
+    ]
+  },
+  "presence": {
+    "principles": [
+      "Be clear before being impressive.",
+      "Speak slower than feels natural."
+    ],
+    "micro_practices": [
+      {
+        "id": "m1",
+        "description": "Say your one-sentence aim aloud, once.",
+        "minutes": 5
+      }
+    ],
+    "wardrobe_notes": "Choose a small set that fits well and needs no thought.",
+    "social_playbook": [
+      "Enter with a question.",
+      "Disagree with the idea, not the person."
+    ]
+  },
+  "legacy": {
+    "milestones": [
+      {
+        "horizon": "2y",
+        "statement": "A product with 50 paying customers and a revenue number I can check.",
+        "evidence_of_progress": [
+          "A verifiable result you can point to"
+        ],
+        "leading_indicators": [
+          "Weekly output completed"
+        ]
+      },
+      {
+        "horizon": "5y",
+        "statement": "The work sustains itself and compounds.",
+        "evidence_of_progress": [
+          "Others rely on what you built"
+        ],
+        "leading_indicators": [
+          "Quarterly review on track"
+        ]
+      },
+      {
+        "horizon": "life",
+        "statement": "I want to become a founder who ships a product people pay for.",
+        "evidence_of_progress": [
+          "The standard you hold yourself to is visible in your work"
+        ],
+        "leading_indicators": [
+          "Habits hold without reminders"
+        ]
+      }
+    ]
+  },
+  "checklist_30": [
+    {
+      "id": "c1",
+      "title": "Define this week's single outcome",
+      "detail": "Write one sentence.",
+      "layer": "mission",
+      "due_day": 1,
+      "minutes": 15,
+      "priority": true
+    },
+    {
+      "id": "c2",
+      "title": "Block tomorrow's deep work",
+      "detail": "Put it in your calendar.",
+      "layer": "daily_os",
+      "due_day": 1,
+      "minutes": 10,
+      "priority": false
+    },
+    {
+      "id": "c3",
+      "title": "Start the first reading",
+      "detail": "Read for 25 minutes.",
+      "layer": "knowledge",
+      "due_day": 2,
+      "minutes": 25,
+      "priority": false
+    },
+    {
+      "id": "c4",
+      "title": "First follow-through practice",
+      "detail": "Name the must-finish task.",
+      "layer": "character",
+      "due_day": 3,
+      "minutes": 10,
+      "priority": false,
+      "trait_id": "follow_through"
+    },
+    {
+      "id": "c5",
+      "title": "Run a full day on the schedule",
+      "detail": "Review what slipped.",
+      "layer": "daily_os",
+      "due_day": 5,
+      "minutes": 30,
+      "priority": false
+    },
+    {
+      "id": "c6",
+      "title": "Weekly output review",
+      "detail": "What shipped, what did not.",
+      "layer": "mission",
+      "due_day": 7,
+      "minutes": 30,
+      "priority": true
+    },
+    {
+      "id": "c7",
+      "title": "Complete one postponed task",
+      "detail": "Pick the one you avoided.",
+      "layer": "character",
+      "due_day": 9,
+      "minutes": 30,
+      "priority": false,
+      "trait_id": "steady_courage"
+    },
+    {
+      "id": "c8",
+      "title": "Destruction test on the first book",
+      "detail": "Use the template.",
+      "layer": "knowledge",
+      "due_day": 12,
+      "minutes": 30,
+      "priority": false
+    },
+    {
+      "id": "c9",
+      "title": "Mid-point review",
+      "detail": "Adjust the plan to reality.",
+      "layer": "mission",
+      "due_day": 15,
+      "minutes": 45,
+      "priority": true
+    },
+    {
+      "id": "c10",
+      "title": "Presence micro-practice",
+      "detail": "Say your aim aloud.",
+      "layer": "presence",
+      "due_day": 18,
+      "minutes": 5,
+      "priority": false
+    },
+    {
+      "id": "c11",
+      "title": "Two-year milestone check",
+      "detail": "Is the plan pointed at it?",
+      "layer": "legacy",
+      "due_day": 24,
+      "minutes": 30,
+      "priority": false
+    },
+    {
+      "id": "c12",
+      "title": "30-day review",
+      "detail": "What to keep, change, drop.",
+      "layer": "mission",
+      "due_day": 30,
+      "minutes": 60,
+      "priority": true
+    }
+  ],
+  "sprint_90": {
+    "goal": "Move measurably toward: A product with 50 paying customers and a revenue number I can check.",
+    "weeks": [
+      {
+        "index": 1,
+        "theme": "Set the cadence",
+        "tasks": [
+          {
+            "id": "s1_1",
+            "title": "Week 1: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 3,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s1_2",
+            "title": "Week 1: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 5,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s1_3",
+            "title": "Week 1: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 6,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 2,
+        "theme": "Protect focus",
+        "tasks": [
+          {
+            "id": "s2_1",
+            "title": "Week 2: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 10,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s2_2",
+            "title": "Week 2: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 12,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s2_3",
+            "title": "Week 2: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 13,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 3,
+        "theme": "First shipment",
+        "tasks": [
+          {
+            "id": "s3_1",
+            "title": "Week 3: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 17,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s3_2",
+            "title": "Week 3: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 19,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s3_3",
+            "title": "Week 3: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 20,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 4,
+        "theme": "Review and adjust",
+        "tasks": [
+          {
+            "id": "s4_1",
+            "title": "Week 4: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 24,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s4_2",
+            "title": "Week 4: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 26,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s4_3",
+            "title": "Week 4: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 27,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 5,
+        "theme": "Set the cadence",
+        "tasks": [
+          {
+            "id": "s5_1",
+            "title": "Week 5: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 31,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s5_2",
+            "title": "Week 5: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 33,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s5_3",
+            "title": "Week 5: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 34,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 6,
+        "theme": "Protect focus",
+        "tasks": [
+          {
+            "id": "s6_1",
+            "title": "Week 6: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 38,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s6_2",
+            "title": "Week 6: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 40,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s6_3",
+            "title": "Week 6: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 41,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 7,
+        "theme": "First shipment",
+        "tasks": [
+          {
+            "id": "s7_1",
+            "title": "Week 7: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 45,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s7_2",
+            "title": "Week 7: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 47,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s7_3",
+            "title": "Week 7: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 48,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 8,
+        "theme": "Review and adjust",
+        "tasks": [
+          {
+            "id": "s8_1",
+            "title": "Week 8: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 52,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s8_2",
+            "title": "Week 8: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 54,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s8_3",
+            "title": "Week 8: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 55,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 9,
+        "theme": "Set the cadence",
+        "tasks": [
+          {
+            "id": "s9_1",
+            "title": "Week 9: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 59,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s9_2",
+            "title": "Week 9: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 61,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s9_3",
+            "title": "Week 9: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 62,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 10,
+        "theme": "Protect focus",
+        "tasks": [
+          {
+            "id": "s10_1",
+            "title": "Week 10: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 66,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s10_2",
+            "title": "Week 10: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 68,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s10_3",
+            "title": "Week 10: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 69,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 11,
+        "theme": "First shipment",
+        "tasks": [
+          {
+            "id": "s11_1",
+            "title": "Week 11: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 73,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s11_2",
+            "title": "Week 11: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 75,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s11_3",
+            "title": "Week 11: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 76,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      },
+      {
+        "index": 12,
+        "theme": "Review and adjust",
+        "tasks": [
+          {
+            "id": "s12_1",
+            "title": "Week 12: main deliverable",
+            "detail": "The one outcome for the week.",
+            "layer": "mission",
+            "due_day": 80,
+            "minutes": 120,
+            "priority": true
+          },
+          {
+            "id": "s12_2",
+            "title": "Week 12: reading",
+            "detail": "Continue the list.",
+            "layer": "knowledge",
+            "due_day": 82,
+            "minutes": 45,
+            "priority": false
+          },
+          {
+            "id": "s12_3",
+            "title": "Week 12: practice",
+            "detail": "Keep the character practice.",
+            "layer": "character",
+            "due_day": 83,
+            "minutes": 30,
+            "priority": false
+          }
+        ],
+        "review_prompt": "What did I do that I would repeat, and what would I change?"
+      }
+    ]
+  },
+  "disclaimer": "This protocol is a planning framework built from your answers. It is not professional advice and it does not promise any particular result. You can change any part of it."
+}

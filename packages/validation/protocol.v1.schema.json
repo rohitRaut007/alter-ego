@@ -1,0 +1,814 @@
+{
+  "$defs": {
+    "Block": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+          "title": "End",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "deep_work",
+            "recovery",
+            "practice",
+            "admin",
+            "learning"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "layer": {
+          "enum": [
+            "identity",
+            "character",
+            "knowledge",
+            "mission",
+            "daily_os",
+            "presence",
+            "legacy"
+          ],
+          "title": "Layer",
+          "type": "string"
+        },
+        "start": {
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+          "title": "Start",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "label",
+        "layer",
+        "kind"
+      ],
+      "title": "Block",
+      "type": "object"
+    },
+    "Character": {
+      "additionalProperties": false,
+      "properties": {
+        "traits": {
+          "items": {
+            "$ref": "#/$defs/Trait"
+          },
+          "maxItems": 7,
+          "minItems": 3,
+          "title": "Traits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "traits"
+      ],
+      "title": "Character",
+      "type": "object"
+    },
+    "DailyOS": {
+      "additionalProperties": false,
+      "properties": {
+        "deep_work_minutes_per_day": {
+          "maximum": 480,
+          "minimum": 0,
+          "title": "Deep Work Minutes Per Day",
+          "type": "integer"
+        },
+        "reflection_questions": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Reflection Questions",
+          "type": "array"
+        },
+        "schedule": {
+          "items": {
+            "$ref": "#/$defs/Block"
+          },
+          "maxItems": 14,
+          "minItems": 1,
+          "title": "Schedule",
+          "type": "array"
+        },
+        "shutdown_ritual": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Shutdown Ritual",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schedule",
+        "deep_work_minutes_per_day",
+        "shutdown_ritual",
+        "reflection_questions"
+      ],
+      "title": "DailyOS",
+      "type": "object"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "properties": {
+        "alter_ego_name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Alter Ego Name",
+          "type": "string"
+        },
+        "archetype": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Archetype",
+          "type": "string"
+        },
+        "identity_statement": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Identity Statement",
+          "type": "string"
+        },
+        "legacy_definition": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Legacy Definition",
+          "type": "string"
+        },
+        "thesis": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Thesis",
+          "type": "string"
+        },
+        "why_this_fits": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Why This Fits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "archetype",
+        "thesis",
+        "alter_ego_name",
+        "identity_statement",
+        "legacy_definition",
+        "why_this_fits"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "Knowledge": {
+      "additionalProperties": false,
+      "properties": {
+        "destruction_test_template": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Destruction Test Template",
+          "type": "string"
+        },
+        "reading_list": {
+          "items": {
+            "$ref": "#/$defs/ReadingItem"
+          },
+          "maxItems": 15,
+          "minItems": 5,
+          "title": "Reading List",
+          "type": "array"
+        },
+        "sequencing_rationale": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Sequencing Rationale",
+          "type": "string"
+        },
+        "weekly_focus_domains": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Weekly Focus Domains",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reading_list",
+        "sequencing_rationale",
+        "destruction_test_template",
+        "weekly_focus_domains"
+      ],
+      "title": "Knowledge",
+      "type": "object"
+    },
+    "Legacy": {
+      "additionalProperties": false,
+      "properties": {
+        "milestones": {
+          "items": {
+            "$ref": "#/$defs/Milestone"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Milestones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "milestones"
+      ],
+      "title": "Legacy",
+      "type": "object"
+    },
+    "MicroPractice": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "minutes": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "minutes"
+      ],
+      "title": "MicroPractice",
+      "type": "object"
+    },
+    "Milestone": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_of_progress": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Evidence Of Progress",
+          "type": "array"
+        },
+        "horizon": {
+          "enum": [
+            "2y",
+            "5y",
+            "life"
+          ],
+          "title": "Horizon",
+          "type": "string"
+        },
+        "leading_indicators": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Leading Indicators",
+          "type": "array"
+        },
+        "statement": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "horizon",
+        "statement",
+        "evidence_of_progress",
+        "leading_indicators"
+      ],
+      "title": "Milestone",
+      "type": "object"
+    },
+    "Mission": {
+      "additionalProperties": false,
+      "properties": {
+        "execution_system": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Execution System",
+          "type": "string"
+        },
+        "risks": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Risks",
+          "type": "array"
+        },
+        "roadmap": {
+          "items": {
+            "$ref": "#/$defs/Phase"
+          },
+          "maxItems": 5,
+          "minItems": 2,
+          "title": "Roadmap",
+          "type": "array"
+        },
+        "statement": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "strategy": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "statement",
+        "strategy",
+        "roadmap",
+        "risks",
+        "execution_system"
+      ],
+      "title": "Mission",
+      "type": "object"
+    },
+    "Phase": {
+      "additionalProperties": false,
+      "properties": {
+        "horizon_weeks": {
+          "maximum": 104,
+          "minimum": 1,
+          "title": "Horizon Weeks",
+          "type": "integer"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "horizon_weeks",
+        "outcomes"
+      ],
+      "title": "Phase",
+      "type": "object"
+    },
+    "Practice": {
+      "additionalProperties": false,
+      "properties": {
+        "cadence": {
+          "enum": [
+            "daily",
+            "weekly"
+          ],
+          "title": "Cadence",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "minutes": {
+          "maximum": 180,
+          "minimum": 1,
+          "title": "Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "cadence",
+        "minutes"
+      ],
+      "title": "Practice",
+      "type": "object"
+    },
+    "Presence": {
+      "additionalProperties": false,
+      "properties": {
+        "micro_practices": {
+          "items": {
+            "$ref": "#/$defs/MicroPractice"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Micro Practices",
+          "type": "array"
+        },
+        "principles": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Principles",
+          "type": "array"
+        },
+        "social_playbook": {
+          "items": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Social Playbook",
+          "type": "array"
+        },
+        "wardrobe_notes": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Wardrobe Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principles",
+        "micro_practices",
+        "wardrobe_notes",
+        "social_playbook"
+      ],
+      "title": "Presence",
+      "type": "object"
+    },
+    "ReadingItem": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Author",
+          "type": "string"
+        },
+        "estimated_hours": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Estimated Hours",
+          "type": "integer"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "why_now": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Why Now",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "author",
+        "why_now",
+        "sequence",
+        "estimated_hours"
+      ],
+      "title": "ReadingItem",
+      "type": "object"
+    },
+    "Sprint": {
+      "additionalProperties": false,
+      "properties": {
+        "goal": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "weeks": {
+          "items": {
+            "$ref": "#/$defs/Week"
+          },
+          "maxItems": 13,
+          "minItems": 12,
+          "title": "Weeks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "goal",
+        "weeks"
+      ],
+      "title": "Sprint",
+      "type": "object"
+    },
+    "Task": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "due_day": {
+          "maximum": 90,
+          "minimum": 1,
+          "title": "Due Day",
+          "type": "integer"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "layer": {
+          "enum": [
+            "identity",
+            "character",
+            "knowledge",
+            "mission",
+            "daily_os",
+            "presence",
+            "legacy"
+          ],
+          "title": "Layer",
+          "type": "string"
+        },
+        "minutes": {
+          "maximum": 480,
+          "minimum": 1,
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "priority": {
+          "default": false,
+          "title": "Priority",
+          "type": "boolean"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "trait_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,31}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trait Id"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "detail",
+        "layer",
+        "due_day",
+        "minutes"
+      ],
+      "title": "Task",
+      "type": "object"
+    },
+    "Trait": {
+      "additionalProperties": false,
+      "properties": {
+        "failure_mode": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Failure Mode",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "monthly_reflection_prompt": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Monthly Reflection Prompt",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "practices": {
+          "items": {
+            "$ref": "#/$defs/Practice"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Practices",
+          "type": "array"
+        },
+        "rationale": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "statement": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "statement",
+        "rationale",
+        "practices",
+        "failure_mode",
+        "monthly_reflection_prompt"
+      ],
+      "title": "Trait",
+      "type": "object"
+    },
+    "Week": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "maximum": 13,
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "review_prompt": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Review Prompt",
+          "type": "string"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/Task"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Tasks",
+          "type": "array"
+        },
+        "theme": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Theme",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "theme",
+        "tasks",
+        "review_prompt"
+      ],
+      "title": "Week",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "character": {
+      "$ref": "#/$defs/Character"
+    },
+    "checklist_30": {
+      "items": {
+        "$ref": "#/$defs/Task"
+      },
+      "maxItems": 60,
+      "minItems": 5,
+      "title": "Checklist 30",
+      "type": "array"
+    },
+    "daily_os": {
+      "$ref": "#/$defs/DailyOS"
+    },
+    "disclaimer": {
+      "maxLength": 1200,
+      "minLength": 1,
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/Identity"
+    },
+    "knowledge": {
+      "$ref": "#/$defs/Knowledge"
+    },
+    "legacy": {
+      "$ref": "#/$defs/Legacy"
+    },
+    "mission": {
+      "$ref": "#/$defs/Mission"
+    },
+    "presence": {
+      "$ref": "#/$defs/Presence"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sprint_90": {
+      "$ref": "#/$defs/Sprint"
+    }
+  },
+  "required": [
+    "schema_version",
+    "generated_at",
+    "identity",
+    "character",
+    "knowledge",
+    "mission",
+    "daily_os",
+    "presence",
+    "legacy",
+    "checklist_30",
+    "sprint_90",
+    "disclaimer"
+  ],
+  "title": "ProtocolDocument",
+  "type": "object"
+}
