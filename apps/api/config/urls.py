@@ -11,6 +11,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include("accounts.urls")),
     path("api/v1/", include("protocol.urls")),
+    path("api/v1/", include("daily_os.urls")),
+    path("api/v1/", include("character.urls")),
 ]
 
 if settings.DEBUG:

@@ -17,6 +17,7 @@ from rest_framework.views import APIView
 from analytics.models import EventName
 from analytics.services import track
 from billing.permissions import HasFeature
+from safety.services import screen
 
 from .models import Interview, Protocol, ProtocolEvent, ProtocolStatus
 from .pdf import render_protocol_pdf
@@ -27,7 +28,9 @@ from .serializers import (
     ProtocolSectionSerializer,
     ProtocolSerializer,
     RatingRequestSerializer,
+    RatingResultSerializer,
     ReviseRequestSerializer,
+    ReviseResultSerializer,
 )
 from .services import (
     InterviewError,
@@ -99,6 +102,11 @@ class InterviewTurnView(APIView):
         interview = _interview_or_404(request, pk)
         ser = AnswerRequestSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
+        notice = screen(request.user, ser.validated_data["answer"], "interview")
+        if notice is not None:
+            # Not stored, not sent to the model. The same question stays open.
+            return Response(InterviewStepSerializer(
+                InterviewStepSerializer.build(interview, step_for(interview), notice)).data)
         try:
             step = submit_answer(interview, ser.validated_data["answer"])
         except InterviewError as exc:
@@ -188,12 +196,15 @@ class ProtocolEventsView(APIView):
 class ProtocolReviseView(APIView):
     permission_classes = PERMISSIONS
 
-    @extend_schema(request=ReviseRequestSerializer, responses={200: ProtocolSectionSerializer})
+    @extend_schema(request=ReviseRequestSerializer, responses={200: ReviseResultSerializer})
     def post(self, request, pk, key):
         """Revise one section through conversation. Other sections are not regenerated."""
         protocol = _protocol_or_404(request, pk)
         ser = ReviseRequestSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
+        notice = screen(request.user, ser.validated_data["instruction"], "revise")
+        if notice is not None:
+            return Response(ReviseResultSerializer({"section": None, "safety": notice}).data)
         try:
             section = revise_section(protocol, key, ser.validated_data["instruction"])
         except InterviewError as exc:
@@ -203,24 +214,27 @@ class ProtocolReviseView(APIView):
                 {"detail": "That change could not be applied. Try rephrasing it."},
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
-        return Response(ProtocolSectionSerializer(section).data)
+        return Response(ReviseResultSerializer({"section": section, "safety": None}).data)
 
 
 class ProtocolRatingView(APIView):
     permission_classes = PERMISSIONS
 
-    @extend_schema(request=RatingRequestSerializer, responses={204: None})
+    @extend_schema(request=RatingRequestSerializer, responses={200: RatingResultSerializer})
     def post(self, request, pk):
         protocol = _protocol_or_404(request, pk)
         if protocol.status != ProtocolStatus.READY:
             return _conflict("The protocol is not ready to rate.")
         ser = RatingRequestSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
+        comment = ser.validated_data.get("comment") or None
+        notice = screen(request.user, comment, "rating") if comment else None
         protocol.accuracy_rating = ser.validated_data["score"]
-        protocol.rating_comment = ser.validated_data.get("comment") or None
+        # A flagged comment is dropped; the score still counts.
+        protocol.rating_comment = None if notice else comment
         protocol.save(update_fields=["accuracy_rating", "rating_comment"])
         track(request.user, EventName.PROTOCOL_RATED, {"score": protocol.accuracy_rating})
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(RatingResultSerializer({"safety": notice}).data)
 
 
 class ProtocolPdfView(APIView):

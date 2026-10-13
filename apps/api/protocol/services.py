@@ -269,6 +269,7 @@ def run_generation(protocol_id: str, llm: LLMService | None = None) -> None:
         assemble_document(protocol)  # whole-document validation before we call it ready
         protocol.status = ProtocolStatus.READY
         protocol.save(update_fields=["status", "completed_at", "prompt_version", "model"])
+        _sync_trackables(protocol)
         track(user, EventName.PROTOCOL_GENERATED, {"schema": SCHEMA_VERSION,
                                                     "prompt": protocol.prompt_version})
         emit(protocol, "done")
@@ -280,6 +281,13 @@ def run_generation(protocol_id: str, llm: LLMService | None = None) -> None:
         protocol.failure_code = code
         protocol.save(update_fields=["status", "failure_code"])
         emit(protocol, "error", code=code)
+
+
+def _sync_trackables(protocol: Protocol) -> None:
+    """Refresh Daily OS and Character data. Imported lazily to avoid a cycle."""
+    from daily_os.services import sync_protocol
+
+    sync_protocol(protocol)
 
 
 # --- revision ---------------------------------------------------------------
@@ -312,4 +320,6 @@ def revise_section(
         instruction=instruction, prompt_version=prompt_version, model=model,
     )
     assemble_document(protocol)  # the revised whole must still be valid
+    if key in ("character", "checklist_30", "sprint_90"):
+        _sync_trackables(protocol)
     return revision

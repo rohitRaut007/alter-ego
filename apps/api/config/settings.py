@@ -27,7 +27,10 @@ INSTALLED_APPS = [
     "billing",
     "analytics",
     "mentor",
+    "safety",
     "protocol",
+    "character",
+    "daily_os",
 ]
 
 MIDDLEWARE = [

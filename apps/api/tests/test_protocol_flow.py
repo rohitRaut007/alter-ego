@@ -185,8 +185,9 @@ def test_revise_changes_only_the_named_section(auth_client):
         format="json",
     )
     assert res.status_code == 200, res.data
-    assert res.data["revision"] == 2
-    assert "shipping weekly" in res.data["content"]["thesis"]
+    assert res.data["safety"] is None
+    assert res.data["section"]["revision"] == 2
+    assert "shipping weekly" in res.data["section"]["content"]["thesis"]
 
     after = {
         s["key"]: s["revision"] for s in auth_client.get(f"/api/v1/protocols/{pid}").data["sections"]
@@ -222,7 +223,8 @@ def test_rating_is_stored_and_tracked(auth_client):
                             format="json").status_code == 400
     res = auth_client.post(f"/api/v1/protocols/{pid}/rating",
                            {"score": 4, "comment": "Mostly right."}, format="json")
-    assert res.status_code == 204
+    assert res.status_code == 200
+    assert res.data["safety"] is None
     p = Protocol.objects.get(pk=pid)
     assert p.accuracy_rating == 4 and p.rating_comment == "Mostly right."
     ev = EventOutbox.objects.get(name=EventName.PROTOCOL_RATED)

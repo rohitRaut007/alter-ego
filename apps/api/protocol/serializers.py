@@ -1,6 +1,8 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from safety.serializers import SafetyNoticeSerializer
+
 from .models import Interview, InterviewTurn, Protocol, ProtocolSection
 from .schema.v1 import SECTION_KEYS
 from .services import NextStep, assemble_document, current_sections
@@ -23,9 +25,10 @@ class InterviewStepSerializer(serializers.Serializer):
     acknowledgement = serializers.CharField(allow_blank=True)
     progress = serializers.FloatField()
     done = serializers.BooleanField()
+    safety = SafetyNoticeSerializer(allow_null=True)
 
     @staticmethod
-    def build(interview: Interview, step: NextStep) -> dict:
+    def build(interview: Interview, step: NextStep, safety=None) -> dict:
         return {
             "interview_id": interview.id,
             "status": interview.status,
@@ -34,6 +37,7 @@ class InterviewStepSerializer(serializers.Serializer):
             "acknowledgement": step.acknowledgement,
             "progress": step.progress,
             "done": step.done,
+            "safety": safety,
         }
 
 
@@ -85,6 +89,17 @@ class ReviseRequestSerializer(serializers.Serializer):
     instruction = serializers.CharField(max_length=1000, trim_whitespace=True)
 
 
+class ReviseResultSerializer(serializers.Serializer):
+    """Either the revised section, or a safety notice when the instruction tripped the boundary."""
+
+    section = ProtocolSectionSerializer(allow_null=True)
+    safety = SafetyNoticeSerializer(allow_null=True)
+
+
 class RatingRequestSerializer(serializers.Serializer):
     score = serializers.IntegerField(min_value=1, max_value=5)
     comment = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+
+
+class RatingResultSerializer(serializers.Serializer):
+    safety = SafetyNoticeSerializer(allow_null=True)
