@@ -1,4 +1,4 @@
-import { Compass, LayoutGrid, LogOut, Sparkles } from "lucide-react";
+import { Compass, LayoutGrid, ListChecks, LogOut, Sparkles, Sun, UserCog } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 
@@ -7,6 +7,9 @@ import { useAuth } from "@/lib/auth";
 
 const NAV = [
   { to: "/", label: "Home", icon: LayoutGrid, end: true },
+  { to: "/today", label: "Today", icon: Sun, end: false },
+  { to: "/plan", label: "Plan", icon: ListChecks, end: false },
+  { to: "/character", label: "Character", icon: UserCog, end: false },
   { to: "/protocol", label: "Protocol", icon: Compass, end: false },
 ] as const;
 

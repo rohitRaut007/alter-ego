@@ -92,11 +92,20 @@ export function HomePage() {
                 ? "Sections appear as they are written."
                 : "Review it, revise any section, or download a PDF."}
             </p>
-            <Link to={`/protocol/${p.id}`} className="mt-5 inline-block">
-              <Button className="w-auto">
-                Open protocol <ArrowRight className="size-4" />
-              </Button>
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {!generating ? (
+                <Link to="/today">
+                  <Button className="w-auto">
+                    Open today <ArrowRight className="size-4" />
+                  </Button>
+                </Link>
+              ) : null}
+              <Link to={`/protocol/${p.id}`}>
+                <Button variant={generating ? "primary" : "outline"} className="w-auto">
+                  Open protocol
+                </Button>
+              </Link>
+            </div>
           </>
         )}
       </Card>

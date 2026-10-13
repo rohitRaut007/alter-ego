@@ -1,8 +1,9 @@
-import type { InterviewStep, Question } from "@alter-ego/api-client";
+import type { InterviewStep, Question, SafetyNotice } from "@alter-ego/api-client";
 import { ArrowRight, Check, Loader2, Send, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { SafetyNoticeCard } from "@/components/SafetyNotice";
 import { Button, cn, Progress, Textarea } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 
@@ -95,6 +96,7 @@ export function InterviewPage() {
   const [busy, setBusy] = useState(false);
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState<string>();
+  const [safety, setSafety] = useState<SafetyNotice | null>(null);
   const [loading, setLoading] = useState(true);
   const endRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -182,6 +184,12 @@ export function InterviewPage() {
       );
       return;
     }
+    if (data.safety) {
+      // Nothing was stored or sent on. The same question stays open.
+      setBubbles((prev) => prev.slice(0, -1));
+      setSafety(data.safety);
+      return;
+    }
     if (data.acknowledgement) push({ role: "mentor", content: data.acknowledgement });
     apply(data, false);
   }
@@ -243,6 +251,9 @@ export function InterviewPage() {
               </p>
             </div>
           ) : null}
+          {safety ? (
+            <SafetyNoticeCard notice={safety} onContinue={() => setSafety(null)} />
+          ) : null}
           {error ? (
             <p role="alert" className="text-sm text-destructive">
               {error}
@@ -252,7 +263,7 @@ export function InterviewPage() {
         </div>
       </div>
 
-      {question && !compiling ? (
+      {question && !compiling && !safety ? (
         <div className="sticky bottom-0 border-t border-border bg-background/90 backdrop-blur-md">
           <div className="mx-auto max-w-3xl px-5 py-4 sm:px-8">
             {question.multi_select ? (

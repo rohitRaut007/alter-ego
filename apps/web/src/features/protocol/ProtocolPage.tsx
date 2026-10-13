@@ -1,4 +1,4 @@
-import type { Protocol } from "@alter-ego/api-client";
+import type { Protocol, SafetyNotice } from "@alter-ego/api-client";
 import { SECTION_LABELS, type SectionKey } from "@alter-ego/validation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Download, Loader2, Pencil } from "lucide-react";
@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
+import { SafetyNoticeCard } from "@/components/SafetyNotice";
 import { Button, Card, cn, Eyebrow, Spinner, Textarea } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 
@@ -30,6 +31,7 @@ function ReviseBox({ protocolId, sectionKey }: { protocolId: string; sectionKey:
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string>();
+  const [safety, setSafety] = useState<SafetyNotice | null>(null);
 
   const revise = useMutation({
     mutationFn: async () => {
@@ -44,14 +46,33 @@ function ReviseBox({ protocolId, sectionKey }: { protocolId: string; sectionKey:
             : "We could not revise this section. Please try again.",
         );
       }
+      return data;
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      if (result.safety) {
+        setSafety(result.safety);
+        return;
+      }
       setOpen(false);
       setText("");
       await qc.invalidateQueries({ queryKey: ["protocol", protocolId] });
     },
     onError: (e: Error) => setError(e.message),
   });
+
+  if (safety) {
+    return (
+      <div className="mt-3">
+        <SafetyNoticeCard
+          notice={safety}
+          onContinue={() => {
+            setSafety(null);
+            setText("");
+          }}
+        />
+      </div>
+    );
+  }
 
   if (!open) {
     return (

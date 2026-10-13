@@ -200,7 +200,10 @@ describe("protocol", () => {
       [`POST /api/v1/protocols/${PID}/sections/identity/revise`]: async (req) => {
         expect(await req.json()).toEqual({ instruction: "Make it about shipping weekly." });
         revised = true;
-        return json({ key: "identity", revision: 2, content: {}, created_at: "2026-10-14T06:00:00Z" });
+        return json({
+          section: { key: "identity", revision: 2, content: {}, created_at: "2026-10-14T06:00:00Z" },
+          safety: null,
+        });
       },
     });
     renderApp(`/protocol/${PID}`);
