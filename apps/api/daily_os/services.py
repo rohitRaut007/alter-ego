@@ -139,11 +139,16 @@ def sync_protocol(protocol: Protocol) -> Sprint:
                 "due_day": t["due_day"],
                 "due_date": sprint.starts_on + timedelta(days=t["due_day"]),
                 "week_index": t["week_index"],
+                "block": classify_block(t["layer"], t["minutes"], t["title"]),
                 "trait": trait,
                 "archived_at": None,
             },
         )
-    for task in Task.objects.filter(protocol=protocol, archived_at__isnull=True):
+    # Only protocol-derived tasks are reconciled; user and mentor tasks are never removed here.
+    protocol_sources = (TaskSource.CHECKLIST_30, TaskSource.SPRINT_90)
+    for task in Task.objects.filter(
+        protocol=protocol, archived_at__isnull=True, source__in=protocol_sources
+    ):
         if (task.source, task.source_id) not in wanted:
             if task.done_at is None:
                 task.delete()
@@ -151,6 +156,16 @@ def sync_protocol(protocol: Protocol) -> Sprint:
                 task.archived_at = now
                 task.save(update_fields=["archived_at"])
     return sprint
+
+
+def classify_block(layer: str, minutes: int, title: str) -> str:
+    """Which part of the day a task belongs to. Heuristic, used for grouping only."""
+    text = title.lower()
+    if layer in ("legacy",) or any(k in text for k in ("review", "reflect", "retro", "plan tomorrow")):
+        return "evening"
+    if minutes >= 45 or layer == "mission":
+        return "deep_work"
+    return "morning"
 
 
 def latest_ready_protocol(user) -> Protocol | None:
@@ -192,6 +207,21 @@ def _ensure_other_trackables(protocol: Protocol) -> None:
 
 def active_tasks(user):
     return Task.objects.filter(user=user, archived_at__isnull=True)
+
+
+def add_user_task(user, *, title: str, detail: str, minutes: int, block: str, layer: str) -> Task:
+    """A task the user adds themselves. Due today, attached to the current sprint."""
+    import uuid
+
+    sprint = get_sprint(user)
+    today = clock.local_today(user)
+    return Task.objects.create(
+        user=user, protocol=sprint.protocol, sprint=sprint, source=TaskSource.USER,
+        source_id=f"user_{uuid.uuid4().hex[:16]}", layer=layer, block=block, title=title,
+        detail=detail, minutes=minutes, priority=False,
+        due_day=max(1, (today - sprint.starts_on).days), due_date=today,
+        week_index=week_index(sprint, today),
+    )
 
 
 def set_task_done(task: Task, done: bool) -> Task:

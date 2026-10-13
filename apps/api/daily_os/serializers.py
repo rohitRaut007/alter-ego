@@ -17,7 +17,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = [
-            "id", "source", "layer", "title", "detail", "minutes", "priority", "due_day",
+            "id", "source", "layer", "block", "title", "detail", "minutes", "priority", "due_day",
             "due_date", "week_index", "trait_id", "done", "done_at",
         ]
         read_only_fields = fields
@@ -25,6 +25,22 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class TaskUpdateSerializer(serializers.Serializer):
     done = serializers.BooleanField()
+
+
+class TaskCreateSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    detail = serializers.CharField(max_length=600, required=False, allow_blank=True, default="")
+    minutes = serializers.IntegerField(min_value=5, max_value=480, default=30)
+    block = serializers.ChoiceField(choices=["morning", "deep_work", "evening"], default="deep_work")
+    layer = serializers.ChoiceField(choices=LAYERS, default="mission")
+
+
+class TaskResultSerializer(serializers.Serializer):
+    task = serializers.SerializerMethodField(allow_null=True)
+    safety = SafetyNoticeSerializer(allow_null=True)
+
+    def get_task(self, obj) -> dict | None:  # noqa: ANN001
+        return TaskSerializer(obj["task"]).data if obj.get("task") else None
 
 
 class PracticeStateSerializer(serializers.Serializer):

@@ -72,6 +72,7 @@ def accept(user, challenge: MentorChallenge) -> MentorChallenge:
         user=user, protocol=sprint.protocol, sprint=sprint, source=TaskSource.MENTOR,
         source_id=f"mentor_{challenge.id.hex[:16]}", layer=challenge.layer,
         title=challenge.title, detail=challenge.detail, minutes=60, priority=True,
+        block="deep_work",
         due_day=max(1, (due - sprint.starts_on).days), due_date=due,
         week_index=week_index(sprint, today),
     )

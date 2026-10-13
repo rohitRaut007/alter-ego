@@ -91,3 +91,17 @@ Entitlement `daily_os` gates `/daily/*`, `/sprints/*`, `/tasks*`, `/reflections`
 | GET/POST | `/weekly-ritual` | Opens Sunday 17:00 local, stays open through Wednesday; 409 outside the window |
 
 **Safety:** every endpoint that accepts free text may return HTTP 200 with `safety: {paused, category, message, resources[]}` instead of the normal result, and in that case nothing was stored for coaching. Changed in this phase: `POST /protocols/{id}/sections/{key}/revise` now returns `{section, safety}`, `POST /protocols/{id}/rating` returns `{safety}`, and interview turns include `safety`.
+
+## Phase 4 and legacy-feature endpoints as built
+| Area | Endpoints |
+|---|---|
+| Mentor | `GET/POST /mentor/threads`, `GET/DELETE /mentor/threads/{id}`, `POST /mentor/threads/{id}/messages` (SSE; JSON with `safety` when the boundary triggers; `stream:false` for JSON), `POST /mentor/threads/{id}/resume`, `GET /mentor/memory`, `DELETE /mentor/memory/{id}`, `GET /mentor/nudges`, `POST /mentor/nudges/{id}/read`, `GET /mentor/challenges`, `POST /mentor/challenges/{id}/accept|dismiss`, `GET /mentor/prompts` |
+| Daily OS additions | `POST /tasks/new`, `DELETE /tasks/{id}` (user-added only); tasks now carry `block` |
+| Knowledge | `GET /knowledge/library`, `PATCH /knowledge/items/{id}`, `GET/POST /knowledge/notes`, `DELETE /knowledge/notes/{id}`, `POST /knowledge/advisor` |
+| Legacy | `GET /legacy/timeline`, `POST /legacy/milestones`, `PATCH/DELETE /legacy/milestones/{id}`, `POST /legacy/reviews`, `POST /legacy/reviews/{id}/complete` |
+| Personality | `GET /personality/questions`, `GET/POST /personality` |
+| Calendar | `GET/POST/DELETE /calendar`, `POST /calendar/sync`, `GET /calendar/events` (demo mode is reported in the response) |
+| Dashboard | `GET /dashboard` |
+| Settings | `PATCH /me` (preferences), `PATCH /me/identity`, `GET /me/export`, `POST /me/reset` |
+
+Rate limit: mentor messages 30 per hour per user (`MENTOR_THROTTLE_RATE`). Entitlements: `mentor`, `knowledge`, `legacy` (Full), `calendar` (Full).

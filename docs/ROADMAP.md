@@ -63,3 +63,6 @@ North star (trait or habit change within 30 days) is instrumented from Phase 3 (
 
 - **Phase 3 Daily OS and Character: built (web)** with the safety boundary pulled forward from Phase 4. Brief, plan, tasks, practices with streaks, deep work timer, evening reflection, Sunday ritual and trait check-ins work end to end. The brief is rule-based (no model); the mentor-written brief arrives with Phase 4.
 - **Gate still open:** a qualified human must review the crisis resource list and the classifier before any real user touches the product.
+
+- **Phase 4 Mentor: built.** Streaming chat over SSE with the safety stop, encrypted history, structured memory the user can see and delete, rolling summaries, proactive nudges (re-engagement, ritual, 30/60/90 check-ins, streak milestones) evaluated lazily or by `manage.py run_proactive`, and weekly challenges that become Daily OS tasks. Still on the fake provider; the persona name and model id are the remaining inputs.
+- **Knowledge, Legacy timeline, personality, calendar (demo mode), dashboard and settings are built** to bring the whole legacy frontend over (see MIGRATION_FROM_LEGACY.md). Google Calendar OAuth and the Presence module remain open.

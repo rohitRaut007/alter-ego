@@ -24,6 +24,8 @@ from .serializers import (
     RitualAnswersSerializer,
     RitualSerializer,
     SprintSerializer,
+    TaskCreateSerializer,
+    TaskResultSerializer,
     TaskSerializer,
     TaskUpdateSerializer,
 )
@@ -115,8 +117,33 @@ class TaskListView(APIView):
         return Response(TaskSerializer(list(qs[:300]), many=True).data)
 
 
+class TaskCreateView(APIView):
+    permission_classes = PERMISSIONS
+
+    @extend_schema(request=TaskCreateSerializer, responses={200: TaskResultSerializer})
+    def post(self, request):
+        """Add your own task to today. Text is safety-screened like every free-text input."""
+        ser = TaskCreateSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        d = ser.validated_data
+        notice = screen_all(request.user, [d["title"], d["detail"]], "task")
+        if notice is not None:
+            return Response(TaskResultSerializer({"task": None, "safety": notice}).data)
+        task = services.add_user_task(request.user, title=d["title"], detail=d["detail"],
+                                      minutes=d["minutes"], block=d["block"], layer=d["layer"])
+        return Response(TaskResultSerializer({"task": task, "safety": None}).data)
+
+
 class TaskDetailView(APIView):
     permission_classes = PERMISSIONS
+
+    @extend_schema(responses={204: None})
+    def delete(self, request, pk):
+        task = get_object_or_404(services.active_tasks(request.user), pk=pk)
+        if task.source != "user":
+            return _conflict("Only tasks you added yourself can be deleted.")
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(request=TaskUpdateSerializer, responses={200: TaskSerializer})
     def patch(self, request, pk):

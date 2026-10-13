@@ -411,3 +411,38 @@ def test_ritual_not_available_midweek_and_screened(ready, monkeypatch):
     flagged = {"shipped": "Nothing.", "slipped": "I feel hopeless.", "next_outcome": "Survive."}
     res = client.post("/api/v1/weekly-ritual", flagged, format="json")
     assert res.data["safety"]["category"] == "distress" and res.data["state"]["completed"] is False
+
+
+# --- user-added tasks -------------------------------------------------------------------
+
+
+def test_user_can_add_and_delete_their_own_task_and_sync_keeps_it(ready):
+    client, protocol, sprint = ready
+    res = client.post("/api/v1/tasks/new", {"title": "Write the launch email", "minutes": 40,
+                                            "block": "evening"}, format="json")
+    assert res.status_code == 200 and res.data["safety"] is None
+    task = res.data["task"]
+    assert task["source"] == "user" and task["block"] == "evening" and task["minutes"] == 40
+
+    sync_protocol(protocol)  # must not remove tasks the user added
+    assert Task.objects.filter(pk=task["id"]).exists()
+
+    brief = client.get("/api/v1/daily/brief").data
+    assert any(t["id"] == task["id"] for t in brief["due_tasks"])
+
+    assert client.delete(f"/api/v1/tasks/{task['id']}").status_code == 204
+    protocol_task = Task.objects.filter(source="checklist30").first()
+    assert client.delete(f"/api/v1/tasks/{protocol_task.id}").status_code == 409
+
+
+def test_user_task_text_is_screened(ready):
+    client, _, _ = ready
+    res = client.post("/api/v1/tasks/new", {"title": "I want to end my life"}, format="json")
+    assert res.data["task"] is None and res.data["safety"]["category"] == "crisis"
+    assert not Task.objects.filter(source="user").exists()
+
+
+def test_tasks_get_a_block_for_grouping(ready):
+    _, _, _ = ready
+    blocks = set(Task.objects.values_list("block", flat=True))
+    assert blocks <= {"morning", "deep_work", "evening"} and len(blocks) >= 2

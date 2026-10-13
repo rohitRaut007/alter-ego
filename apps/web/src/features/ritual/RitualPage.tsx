@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/AppShell";
 import { SafetyNoticeCard } from "@/components/SafetyNotice";
-import { Button, Card, Eyebrow, Spinner, Textarea } from "@/components/ui";
+import { Button, Card, Eyebrow, Spinner, Textarea } from "@/components/primitives";
 import { useAuth } from "@/lib/auth";
 
 type Answers = { shipped: string; slipped: string; next_outcome: string };

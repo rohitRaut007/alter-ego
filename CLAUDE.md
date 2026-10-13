@@ -16,7 +16,7 @@ AI-powered personal transformation platform. Product source of truth: `docs/PRD.
 |---|---|
 | Install JS deps | `pnpm install` |
 | API venv (once) | `cd apps/api && python -m venv .venv && .venv/Scripts/pip install -r requirements-dev.txt` (Windows) |
-| Run locally (default) | API: `cd apps/api && .venv/Scripts/python manage.py migrate && .venv/Scripts/python -m uvicorn config.asgi:application --port 8000`; web: `pnpm --filter web dev`. SQLite, no Redis, no Docker. Needs root `.env` (see `.env.example`) and `apps/web/.env`. |
+| Run locally (default) | API: `cd apps/api && .venv/Scripts/python manage.py migrate && .venv/Scripts/python -m uvicorn config.asgi:application --port 8010`; web: `pnpm --filter web dev`. SQLite, no Redis, no Docker. Needs root `.env` (see `.env.example`) and `apps/web/.env`. |
 | Docker stack (optional, not used day to day) | `docker compose -f infra/docker-compose.yml up --build` |
 | Web dev | `pnpm --filter web dev` (needs `apps/web/.env` from `.env.example`) |
 | API dev | `cd apps/api && python manage.py migrate && python manage.py runserver` (env from root `.env`) |

@@ -1469,6 +1469,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/Task'
           description: ''
+    delete:
+      operationId: tasks_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tasks
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/tasks/new:
+    post:
+      operationId: tasks_new_create
+      description: Add your own task to today. Text is safety-screened like every
+        free-text input.
+      tags:
+      - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResult'
+          description: ''
   /api/v1/traits:
     get:
       operationId: traits_list
@@ -2547,6 +2591,9 @@ components:
           type: string
           readOnly: true
         tags:
+          type: array
+          items:
+            type: string
           readOnly: true
         item_id:
           type: string
@@ -3574,11 +3621,13 @@ components:
       - checklist30
       - sprint90
       - mentor
+      - user
       type: string
       description: |-
         * `checklist30` - Checklist 30
         * `sprint90` - Sprint 90
         * `mentor` - Mentor
+        * `user` - User
     Sprint:
       type: object
       properties:
@@ -3727,6 +3776,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/LayerEnum'
           readOnly: true
+        block:
+          allOf:
+          - $ref: '#/components/schemas/TaskBlockEnum'
+          readOnly: true
         title:
           type: string
           readOnly: true
@@ -3764,6 +3817,7 @@ components:
           readOnly: true
           nullable: true
       required:
+      - block
       - detail
       - done
       - done_at
@@ -3777,6 +3831,67 @@ components:
       - title
       - trait_id
       - week_index
+    TaskBlockEnum:
+      enum:
+      - morning
+      - deep_work
+      - evening
+      type: string
+      description: |-
+        * `morning` - Morning
+        * `deep_work` - Deep Work
+        * `evening` - Evening
+    TaskCreateBlockEnum:
+      enum:
+      - morning
+      - deep_work
+      - evening
+      type: string
+      description: |-
+        * `morning` - morning
+        * `deep_work` - deep_work
+        * `evening` - evening
+    TaskCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        detail:
+          type: string
+          default: ''
+          maxLength: 600
+        minutes:
+          type: integer
+          maximum: 480
+          minimum: 5
+          default: 30
+        block:
+          allOf:
+          - $ref: '#/components/schemas/TaskCreateBlockEnum'
+          default: deep_work
+        layer:
+          allOf:
+          - $ref: '#/components/schemas/LayerEnum'
+          default: mission
+      required:
+      - title
+    TaskResult:
+      type: object
+      properties:
+        task:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        safety:
+          allOf:
+          - $ref: '#/components/schemas/SafetyNotice'
+          nullable: true
+      required:
+      - safety
+      - task
     Thread:
       type: object
       properties:

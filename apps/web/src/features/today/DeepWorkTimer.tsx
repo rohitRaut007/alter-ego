@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Button, Card, Eyebrow, Progress } from "@/components/ui";
+import { Button, Card, Eyebrow, Progress } from "@/components/primitives";
 import { useAuth } from "@/lib/auth";
 
 const PRESETS = [25, 50, 90];

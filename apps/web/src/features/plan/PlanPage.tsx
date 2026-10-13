@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
-import { Button, Card, cn, Eyebrow, Progress, Spinner } from "@/components/ui";
+import { Button, Card, cn, Eyebrow, Progress, Spinner } from "@/components/primitives";
 import { useAuth } from "@/lib/auth";
 
 function fmt(date: string): string {

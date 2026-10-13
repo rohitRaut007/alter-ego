@@ -1,7 +1,7 @@
 import type { SafetyNotice } from "@alter-ego/api-client";
 import { HeartHandshake } from "lucide-react";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/primitives";
 
 /**
  * Shown instead of a coaching reply when the safety boundary triggers.

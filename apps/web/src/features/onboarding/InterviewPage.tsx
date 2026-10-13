@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { SafetyNoticeCard } from "@/components/SafetyNotice";
-import { Button, cn, Progress, Textarea } from "@/components/ui";
+import { Button, cn, Progress, Textarea } from "@/components/primitives";
 import { useAuth } from "@/lib/auth";
 
 interface Bubble {
@@ -108,9 +108,10 @@ export function InterviewPage() {
   const finish = useCallback(
     async (id: string) => {
       setCompiling(true);
-      const { data } = await api.POST("/api/v1/interviews/{id}/complete", {
-        params: { path: { id } },
-      });
+      const result = await api
+        .POST("/api/v1/interviews/{id}/complete", { params: { path: { id } } })
+        .catch(() => null);
+      const data = result?.data;
       if (!data) {
         setCompiling(false);
         setError("We could not start building your protocol. Please try again.");
@@ -145,11 +146,13 @@ export function InterviewPage() {
     started.current = true;
     push({ role: "mentor", content: INTRO });
     void (async () => {
-      const { data, response } = await api.POST("/api/v1/interviews");
+      const result = await api.POST("/api/v1/interviews").catch(() => null);
       setLoading(false);
+      const data = result?.data;
+      const response = result?.response;
       if (!data) {
         setError(
-          response.status === 403
+          response?.status === 403
             ? "Your plan does not include the protocol yet."
             : "We could not start the interview. Please refresh and try again.",
         );
@@ -171,14 +174,17 @@ export function InterviewPage() {
     setDraft("");
     setSelected([]);
     push({ role: "user", content: Array.isArray(value) ? value.join(" · ") : text });
-    const { data, response } = await api.POST("/api/v1/interviews/{id}/turns", {
-      params: { path: { id: interviewId } },
-      body: { answer: text },
-    });
+    const result = await api
+      .POST("/api/v1/interviews/{id}/turns", {
+        params: { path: { id: interviewId } },
+        body: { answer: text },
+      })
+      .catch(() => null);
     setBusy(false);
+    const data = result?.data;
     if (!data) {
       setError(
-        response.status === 400
+        result?.response.status === 400
           ? "That answer is too long or empty. Please shorten it."
           : "Something went wrong saving that answer. Please try again.",
       );

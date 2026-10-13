@@ -1,14 +1,23 @@
 import type { Protocol, SafetyNotice } from "@alter-ego/api-client";
 import { SECTION_LABELS, type SectionKey } from "@alter-ego/validation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Download, Loader2, Pencil } from "lucide-react";
+import { ArrowRight, Check, Download, Loader2, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
 import { SafetyNoticeCard } from "@/components/SafetyNotice";
-import { Button, Card, cn, Eyebrow, Spinner, Textarea } from "@/components/ui";
+import { Button, Card, cn, Eyebrow, Spinner, Textarea } from "@/components/primitives";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
+import { LAYERS, type LayerKey, type LayerMeta } from "@/lib/layers";
 
 import { SectionView } from "./SectionViews";
 
@@ -24,6 +33,36 @@ const TABS: Array<{ id: string; label: string; keys: SectionKey[] }> = [
 ];
 
 const RATING_LABELS = ["Not accurate", "Slightly", "Somewhat", "Accurate", "Very accurate"];
+
+type Doc = Record<string, any> | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+/** Short, factual highlights for a layer, taken from the user's own protocol document. */
+function layerHighlights(id: LayerKey, doc: Doc): string[] {
+  if (!doc) return [];
+  switch (id) {
+    case "identity":
+      return [`Alter ego: ${doc.identity?.alter_ego_name}`, `Archetype: ${doc.identity?.archetype}`];
+    case "character":
+      return (doc.character?.traits ?? []).map((t: { name: string }) => t.name);
+    case "knowledge":
+      return (doc.knowledge?.reading_list ?? []).slice(0, 4).map((r: { title: string }) => r.title);
+    case "mission":
+      return (doc.mission?.roadmap ?? []).map(
+        (p: { name: string; horizon_weeks: number }) => `${p.name} (${p.horizon_weeks} weeks)`,
+      );
+    case "daily_os":
+      return [
+        `${doc.daily_os?.deep_work_minutes_per_day} minutes of deep work a day`,
+        `${doc.daily_os?.schedule?.length ?? 0} scheduled blocks`,
+      ];
+    case "presence":
+      return (doc.presence?.principles ?? []).slice(0, 3);
+    case "legacy":
+      return (doc.legacy?.milestones ?? []).map(
+        (m: { horizon: string; statement: string }) => `${m.horizon}: ${m.statement}`,
+      );
+  }
+}
 
 function ReviseBox({ protocolId, sectionKey }: { protocolId: string; sectionKey: SectionKey }) {
   const { api } = useAuth();
@@ -175,6 +214,15 @@ export function ProtocolPage() {
   const qc = useQueryClient();
   const [active, setActive] = useState("identity");
   const [pdfError, setPdfError] = useState<string>();
+  const [openLayer, setOpenLayer] = useState<LayerMeta | null>(null);
+
+  const layerProgress = useQuery({
+    queryKey: ["dashboard", "layers"],
+    queryFn: async () => {
+      const { data } = await api.GET("/api/v1/dashboard");
+      return Object.fromEntries((data?.layers ?? []).map((l) => [l.id, l.progress]));
+    },
+  });
 
   const latest = useQuery({
     queryKey: ["protocol", "latest"],
@@ -291,6 +339,64 @@ export function ProtocolPage() {
             Please contact support so we can regenerate it.
           </p>
         </Card>
+      ) : null}
+
+      {status === "ready" ? (
+        <section className="mt-8" aria-label="The seven layers">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {LAYERS.map((layer) => (
+              <button
+                key={layer.id}
+                type="button"
+                onClick={() => setOpenLayer(layer)}
+                className="card-surface group p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+              >
+                <p className="font-mono text-[11px] text-muted-foreground">Layer 0{layer.index}</p>
+                <h2 className="mt-1 text-xl">{layer.name}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{layer.tagline}</p>
+                <Progress value={layerProgress.data?.[layer.id] ?? 0} className="mt-4 h-1" />
+                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{layerProgress.data?.[layer.id] ?? 0}% built</span>
+                  <span className="flex items-center gap-1 transition-transform group-hover:translate-x-0.5">
+                    Open <ArrowRight className="size-3" />
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <Dialog open={openLayer !== null} onOpenChange={(o) => !o && setOpenLayer(null)}>
+            <DialogContent className="max-w-lg">
+              {openLayer ? (
+                <>
+                  <DialogHeader>
+                    <p className="label-eyebrow">Layer 0{openLayer.index}</p>
+                    <DialogTitle className="font-display text-2xl font-normal">
+                      {openLayer.name}
+                    </DialogTitle>
+                    <DialogDescription className="leading-relaxed">
+                      {openLayer.description}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Progress value={layerProgress.data?.[openLayer.id] ?? 0} className="h-1.5" />
+                  <ul className="space-y-2">
+                    {layerHighlights(openLayer.id, protocol.document as Doc).map((h) => (
+                      <li key={h} className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to={openLayer.to ?? "/mentor"}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+                  >
+                    {openLayer.to ? "Open this layer" : "Work on it with your mentor"}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </>
+              ) : null}
+            </DialogContent>
+          </Dialog>
+        </section>
       ) : null}
 
       {status !== "failed" ? (

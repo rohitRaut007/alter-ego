@@ -20,3 +20,6 @@ Weekly metrics (e.g. "8 of 12 Week 2 tasks done, misses all Knowledge") are comp
 - Predictable token cost per turn; prompt cache hits on the pinned prefix.
 - Embeddings leak semantic content; pgvector column lives in the same encrypted-at-rest database and is deleted with the user. Revisit if threat model requires encrypted vectors.
 - Extraction quality needs evaluation: keep a small golden transcript set in tests.
+
+## Phase 4 as built
+Local SQLite has no pgvector, so fact retrieval is lexical (token overlap, always including active commitments) behind the same `retrieve_facts` function the vector version will replace. Per turn the model receives the persona, a protocol summary, a progress snapshot (numbers and titles only), at most 6 facts, the last 2 rolling summaries and the last 6 messages. Summaries are written every 8 messages. Facts are extracted per message by a separate task, are shown to the user and can be deleted. Flagged messages never reach extraction or summarisation.

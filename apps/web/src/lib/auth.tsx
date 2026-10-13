@@ -80,11 +80,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refresh = readRefresh();
     if (!refresh || accessRef.current) return;
     let cancelled = false;
-    void api.POST("/api/v1/auth/token/refresh", { body: { refresh } }).then(({ data }) => {
-      if (cancelled) return;
-      if (data) signIn({ access: data.access, refresh: data.refresh ?? refresh });
-      else clear();
-    });
+    api
+      .POST("/api/v1/auth/token/refresh", { body: { refresh } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data) signIn({ access: data.access, refresh: data.refresh ?? refresh });
+        else clear();
+      })
+      .catch(() => {
+        // Network failure while restoring: fall back to signed out rather than hanging on the spinner.
+        if (!cancelled) clear();
+      });
     return () => {
       cancelled = true;
     };

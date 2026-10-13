@@ -22,6 +22,23 @@ export type SprintWeek = components["schemas"]["SprintWeek"];
 export type DeepWorkSession = components["schemas"]["DeepWorkSession"];
 export type Ritual = components["schemas"]["Ritual"];
 export type ReflectionResult = components["schemas"]["ReflectionResult"];
+export type Dashboard = components["schemas"]["Dashboard"];
+export type Thread = components["schemas"]["Thread"];
+export type ThreadDetail = components["schemas"]["ThreadDetail"];
+export type MentorMessage = components["schemas"]["Message"];
+export type MessageResult = components["schemas"]["MessageResult"];
+export type MemoryFact = components["schemas"]["Fact"];
+export type Nudge = components["schemas"]["Nudge"];
+export type Challenge = components["schemas"]["Challenge"];
+export type Library = components["schemas"]["Library"];
+export type ReadingItem = components["schemas"]["ReadingItem"];
+export type Note = components["schemas"]["Note"];
+export type Milestone = components["schemas"]["Milestone"];
+export type Timeline = components["schemas"]["Timeline"];
+export type Questionnaire = components["schemas"]["Questionnaire"];
+export type PersonalityResult = components["schemas"]["Result"];
+export type CalendarStatus = components["schemas"]["Status"];
+export type CalendarEvent = components["schemas"]["Event"];
 
 export class ApiError extends Error {
   constructor(
@@ -84,6 +101,29 @@ export function createApiClient(options: ApiClientOptions) {
       const init: RequestInit = { headers };
       if (opts.signal) init.signal = opts.signal;
       yield* readSse(await rawFetch(path, init));
+    },
+    /**
+     * POST JSON and either stream server-sent events or return a JSON body.
+     * The mentor answers with JSON (not a stream) when the safety boundary triggers.
+     */
+    async postStream(
+      path: string,
+      body: unknown,
+      opts: { signal?: AbortSignal } = {},
+    ): Promise<
+      | { kind: "json"; data: unknown }
+      | { kind: "stream"; events: AsyncGenerator<SseEvent> }
+    > {
+      const init: RequestInit = {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream, application/json" },
+        body: JSON.stringify(body),
+      };
+      if (opts.signal) init.signal = opts.signal;
+      const response = await rawFetch(path, init);
+      const type = response.headers.get("content-type") ?? "";
+      if (type.includes("text/event-stream")) return { kind: "stream", events: readSse(response) };
+      return { kind: "json", data: await response.json() };
     },
     /** Fetch a binary resource (e.g. the protocol PDF) with the current credentials. */
     async fetchBlob(path: string): Promise<Blob> {

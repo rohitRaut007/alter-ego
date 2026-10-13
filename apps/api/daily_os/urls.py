@@ -6,6 +6,7 @@ urlpatterns = [
     path("daily/brief", views.BriefView.as_view(), name="daily-brief"),
     path("sprints/current", views.SprintView.as_view(), name="sprint-current"),
     path("tasks", views.TaskListView.as_view(), name="task-list"),
+    path("tasks/new", views.TaskCreateView.as_view(), name="task-create"),
     path("tasks/<uuid:pk>", views.TaskDetailView.as_view(), name="task-detail"),
     path("reflections", views.ReflectionView.as_view(), name="reflections"),
     path("deep-work/sessions", views.DeepWorkStartView.as_view(), name="deep-work-start"),

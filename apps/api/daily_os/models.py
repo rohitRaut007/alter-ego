@@ -27,6 +27,13 @@ class TaskSource(models.TextChoices):
     CHECKLIST_30 = "checklist30"
     SPRINT_90 = "sprint90"
     MENTOR = "mentor"
+    USER = "user"
+
+
+class TaskBlock(models.TextChoices):
+    MORNING = "morning"
+    DEEP_WORK = "deep_work"
+    EVENING = "evening"
 
 
 class Task(models.Model):
@@ -37,6 +44,7 @@ class Task(models.Model):
     source = models.CharField(max_length=16, choices=TaskSource.choices)
     source_id = models.CharField(max_length=32)  # id inside the protocol document
     layer = models.CharField(max_length=16)
+    block = models.CharField(max_length=10, choices=TaskBlock.choices, default=TaskBlock.MORNING)
     title = EncryptedTextField()
     detail = EncryptedTextField()
     minutes = models.PositiveSmallIntegerField()

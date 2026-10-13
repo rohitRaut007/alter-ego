@@ -923,10 +923,27 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["tasks_destroy"];
         options?: never;
         head?: never;
         patch: operations["tasks_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/tasks/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Add your own task to today. Text is safety-screened like every free-text input. */
+        post: operations["tasks_new_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/traits": {
@@ -1363,7 +1380,7 @@ export interface components {
             readonly title: string;
             readonly source: string;
             readonly body: string;
-            readonly tags: unknown;
+            readonly tags: string[];
             /** Format: uuid */
             readonly item_id: string | null;
             /** Format: date-time */
@@ -1767,9 +1784,10 @@ export interface components {
          * @description * `checklist30` - Checklist 30
          *     * `sprint90` - Sprint 90
          *     * `mentor` - Mentor
+         *     * `user` - User
          * @enum {string}
          */
-        SourceEnum: "checklist30" | "sprint90" | "mentor";
+        SourceEnum: "checklist30" | "sprint90" | "mentor" | "user";
         Sprint: {
             /** Format: uuid */
             id: string;
@@ -1827,6 +1845,7 @@ export interface components {
             readonly id: string;
             readonly source: components["schemas"]["SourceEnum"];
             readonly layer: components["schemas"]["LayerEnum"];
+            readonly block: components["schemas"]["TaskBlockEnum"];
             readonly title: string;
             readonly detail: string;
             readonly minutes: number;
@@ -1840,6 +1859,37 @@ export interface components {
             readonly done: boolean;
             /** Format: date-time */
             readonly done_at: string | null;
+        };
+        /**
+         * @description * `morning` - Morning
+         *     * `deep_work` - Deep Work
+         *     * `evening` - Evening
+         * @enum {string}
+         */
+        TaskBlockEnum: "morning" | "deep_work" | "evening";
+        /**
+         * @description * `morning` - morning
+         *     * `deep_work` - deep_work
+         *     * `evening` - evening
+         * @enum {string}
+         */
+        TaskCreateBlockEnum: "morning" | "deep_work" | "evening";
+        TaskCreateRequest: {
+            title: string;
+            /** @default  */
+            detail: string;
+            /** @default 30 */
+            minutes: number;
+            /** @default deep_work */
+            block: components["schemas"]["TaskCreateBlockEnum"];
+            /** @default mission */
+            layer: components["schemas"]["LayerEnum"];
+        };
+        TaskResult: {
+            readonly task: {
+                [key: string]: unknown;
+            } | null;
+            safety: components["schemas"]["SafetyNotice"] | null;
         };
         Thread: {
             /** Format: uuid */
@@ -3440,6 +3490,26 @@ export interface operations {
             };
         };
     };
+    tasks_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     tasks_partial_update: {
         parameters: {
             query?: never;
@@ -3463,6 +3533,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+        };
+    };
+    tasks_new_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TaskCreateRequest"];
+                "multipart/form-data": components["schemas"]["TaskCreateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskResult"];
                 };
             };
         };

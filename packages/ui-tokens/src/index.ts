@@ -22,6 +22,27 @@ export const colors = {
   border: "#E5E2DE",
   borderStrong: "#D4D0CB",
   ring: "#A86A2C",
+  surfaceForeground: "#171310",
+  cardForeground: "#171310",
+  popover: "#FFFFFF",
+  popoverForeground: "#171310",
+  secondaryForeground: "#272320",
+  successForeground: "#FDFCF9",
+  destructiveForeground: "#FDFCF9",
+  input: "#E5E2DE",
+  chart1: "#A86A2C",
+  chart2: "#564B42",
+  chart3: "#BD9F7C",
+  chart4: "#4B8A63",
+  chart5: "#D1C9BC",
+  sidebar: "#F8F7F3",
+  sidebarForeground: "#221E1C",
+  sidebarPrimary: "#1D1A17",
+  sidebarPrimaryForeground: "#FBFAF7",
+  sidebarAccent: "#EFEBE4",
+  sidebarAccentForeground: "#1D1A17",
+  sidebarBorder: "#E5E2DE",
+  sidebarRing: "#A86A2C",
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -41,10 +62,10 @@ export const spacing = {
   16: 64,
 } as const;
 
-export const radius = { sm: 10, md: 13, lg: 16, xl: 22, "2xl": 28 } as const;
+export const radius = { sm: 10, md: 13, lg: 16, xl: 22, "2xl": 28, "3xl": 36 } as const;
 
 export const fontFamily = {
-  display: "'Sora', ui-serif, Georgia, serif",
+  display: "'Instrument Serif', ui-serif, Georgia, serif",
   sans: "'Manrope', ui-sans-serif, system-ui, sans-serif",
   mono: "'IBM Plex Mono', ui-monospace, monospace",
 } as const;

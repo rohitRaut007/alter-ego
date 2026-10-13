@@ -1,7 +1,7 @@
 import { sectionSchemas, type SectionData, type SectionKey } from "@alter-ego/validation";
 import type { ReactNode } from "react";
 
-import { Eyebrow } from "@/components/ui";
+import { Eyebrow } from "@/components/primitives";
 
 type Data<K extends SectionKey> = SectionData<K>;
 

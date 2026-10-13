@@ -4,7 +4,10 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import { App } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./lib/auth";
+import { LanguageProvider } from "./lib/i18n";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -13,12 +16,17 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+              <Toaster position="top-right" />
+            </AuthProvider>
+          </BrowserRouter>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

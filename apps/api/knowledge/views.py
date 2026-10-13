@@ -67,6 +67,7 @@ class LibrarySerializer(serializers.Serializer):
 
 class NoteSerializer(serializers.ModelSerializer):
     item_id = serializers.UUIDField(read_only=True, allow_null=True)
+    tags = serializers.ListField(child=serializers.CharField(), read_only=True)
 
     class Meta:
         model = KnowledgeNote
