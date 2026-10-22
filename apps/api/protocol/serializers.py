@@ -4,7 +4,7 @@ from rest_framework import serializers
 from safety.serializers import SafetyNoticeSerializer
 
 from .models import Interview, InterviewTurn, Protocol, ProtocolSection
-from .schema.v1 import SECTION_KEYS
+from .schema.v2 import SECTION_KEYS
 from .services import NextStep, assemble_document, current_sections
 
 

@@ -22,7 +22,7 @@ from .models import (
     ProtocolSection,
     ProtocolStatus,
 )
-from .schema.v1 import (
+from .schema.v2 import (
     DISCLAIMER,
     SCHEMA_VERSION,
     SECTION_KEYS,
@@ -213,21 +213,16 @@ def current_sections(protocol: Protocol) -> dict[str, ProtocolSection]:
 
 
 def assemble_document(protocol: Protocol) -> dict[str, Any]:
+    """The whole document from the sections that exist so far. Sections arrive as cards unlock."""
     sections = {k: s.content for k, s in current_sections(protocol).items()}
     doc: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": (protocol.completed_at or now()).isoformat(),
-        "identity": sections["identity"],
-        "character": sections["character"],
-        "knowledge": sections["knowledge"],
-        "mission": sections["mission"],
-        "daily_os": sections["daily_os"],
-        "presence": sections["presence"],
-        "legacy": sections["legacy"],
-        "checklist_30": sections["checklist_30"]["tasks"],
-        "sprint_90": sections["sprint_90"],
         "disclaimer": DISCLAIMER,
     }
+    for key in SECTION_KEYS:
+        if key in sections:
+            doc[key] = sections[key]["tasks"] if key == "checklist_30" else sections[key]
     return ProtocolDocument.model_validate(doc).model_dump(mode="json", exclude_none=True)
 
 
@@ -299,7 +294,7 @@ def edit_identity(
     protocol: Protocol, *, alter_ego_name: str | None, identity_statement: str | None
 ) -> ProtocolSection:
     """Let the user edit their alter ego name and identity statement directly (no model)."""
-    from .schema.v1 import Identity
+    from .schema.v2 import Identity
 
     if protocol.status != ProtocolStatus.READY:
         raise InterviewError("The protocol is not ready to edit.")

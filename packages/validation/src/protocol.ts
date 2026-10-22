@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 /**
- * Mirror of apps/api/protocol/schema/v1.py (schema 1.0.0).
- * Drift is caught by protocol.test.ts, which validates the example document exported by the API.
+ * Mirror of apps/api/protocol/schema/v2.py (schema 2.0.0).
+ * Drift is caught by protocol.test.ts, which validates the example documents exported by the API.
+ *
+ * 2.0.0: sections are optional (they arrive as cards unlock), the sprint carries milestones and a
+ * rolling two-week task window, and tasks carry a fallback, a milestone and an if-then plan.
  */
 
 const text = z.string().trim().min(1).max(1200);
@@ -123,6 +126,15 @@ export const legacySection = z
     "Legacy needs exactly one milestone each for 2y, 5y and life",
   );
 
+/** Fallbacks are the bad-day version of a task; doing one keeps the streak. */
+export const FALLBACK_MAX_MINUTES = 15;
+
+export const ifThen = z.strictObject({
+  if_cue: shortText,
+  then_action: shortText,
+});
+export type IfThen = z.infer<typeof ifThen>;
+
 export const task = z.strictObject({
   id,
   title: shortText,
@@ -132,60 +144,106 @@ export const task = z.strictObject({
   minutes: z.number().int().min(1).max(480),
   priority: z.boolean().default(false),
   trait_id: id.optional(),
+  milestone_id: id.optional(),
+  fallback: shortText.optional(),
+  fallback_minutes: z.number().int().min(1).max(FALLBACK_MAX_MINUTES).optional(),
+  if_then: ifThen.optional(),
 });
 export type Task = z.infer<typeof task>;
 
+/** Weeks beyond the planned window carry an outcome and no tasks. */
 const week = z.strictObject({
   index: z.number().int().min(1).max(13),
   theme: shortText,
-  tasks: z.array(task).min(1).max(12),
+  outcome: text.optional(),
+  tasks: z.array(task).max(20).default([]),
   review_prompt: text,
 });
+export type Week = z.infer<typeof week>;
 
-export const sprintSection = z.strictObject({
-  goal: text,
-  weeks: z.array(week).min(12).max(13),
+/** `due_day` counts from the sprint start and may fall after it ends: milestones run to the goal. */
+export const sprintMilestone = z.strictObject({
+  id,
+  title: shortText,
+  due_day: z.number().int().min(1).max(730),
+  evidence: text,
+  lead_measures: z.array(shortText).min(1).max(3),
+  quote: shortText.optional(),
 });
+export type SprintMilestone = z.infer<typeof sprintMilestone>;
 
-/** Wrapper the API stores for the checklist section; the full document holds the bare list. */
+export const sprintSection = z
+  .strictObject({
+    goal: text,
+    milestones: z.array(sprintMilestone).max(6).default([]),
+    weeks: z.array(week).min(1).max(13),
+  })
+  .superRefine((sprint, ctx) => {
+    const indexes = sprint.weeks.map((w) => w.index);
+    if (new Set(indexes).size !== indexes.length) {
+      ctx.addIssue({ code: "custom", message: "Sprint week indexes must be unique" });
+    }
+    const milestoneIds = new Set(sprint.milestones.map((m) => m.id));
+    for (const t of sprint.weeks.flatMap((w) => w.tasks)) {
+      if (t.milestone_id && !milestoneIds.has(t.milestone_id)) {
+        ctx.addIssue({ code: "custom", message: `Unknown milestone: ${t.milestone_id}` });
+      }
+    }
+  });
+
+/**
+ * Deprecated in 2.0.0: the plan's two-week window replaces it. Kept so 1.0.0 documents load.
+ * Wrapper the API stores for the checklist section; the full document holds the bare list.
+ */
 export const checklistSection = z.strictObject({
   tasks: z.array(task).min(5).max(60),
 });
 
 export const protocolDocument = z
   .strictObject({
-    schema_version: z.literal("1.0.0"),
+    schema_version: z.literal("2.0.0"),
     generated_at: z.string().datetime({ offset: true }),
-    identity: identitySection,
-    character: characterSection,
-    knowledge: knowledgeSection,
-    mission: missionSection,
-    daily_os: dailyOsSection,
-    presence: presenceSection,
-    legacy: legacySection,
-    checklist_30: z.array(task).min(5).max(60),
-    sprint_90: sprintSection,
+    identity: identitySection.optional(),
+    character: characterSection.optional(),
+    knowledge: knowledgeSection.optional(),
+    mission: missionSection.optional(),
+    daily_os: dailyOsSection.optional(),
+    presence: presenceSection.optional(),
+    legacy: legacySection.optional(),
+    checklist_30: z.array(task).min(5).max(60).optional(),
+    sprint_90: sprintSection.optional(),
     disclaimer: text,
   })
   .superRefine((doc, ctx) => {
+    const traits = doc.character?.traits ?? [];
+    const checklist = doc.checklist_30 ?? [];
+    const sprintTasks = doc.sprint_90?.weeks.flatMap((w) => w.tasks) ?? [];
     const ids = [
-      ...doc.character.traits.map((t) => t.id),
-      ...doc.character.traits.flatMap((t) => t.practices.map((p) => p.id)),
-      ...doc.knowledge.reading_list.map((r) => r.id),
-      ...doc.presence.micro_practices.map((m) => m.id),
-      ...doc.checklist_30.map((t) => t.id),
-      ...doc.sprint_90.weeks.flatMap((w) => w.tasks.map((t) => t.id)),
+      ...traits.map((t) => t.id),
+      ...traits.flatMap((t) => t.practices.map((p) => p.id)),
+      ...(doc.knowledge?.reading_list.map((r) => r.id) ?? []),
+      ...(doc.presence?.micro_practices.map((m) => m.id) ?? []),
+      ...checklist.map((t) => t.id),
+      ...sprintTasks.map((t) => t.id),
     ];
     const seen = new Set<string>();
     for (const x of ids) {
       if (seen.has(x)) ctx.addIssue({ code: "custom", message: `Duplicate id: ${x}` });
       seen.add(x);
     }
-    if (!doc.checklist_30.some((t) => t.due_day === 1)) {
-      ctx.addIssue({ code: "custom", message: "checklist_30 needs a Day 1 task" });
+    const traitIds = new Set(traits.map((t) => t.id));
+    for (const t of [...checklist, ...sprintTasks]) {
+      if (t.trait_id && !traitIds.has(t.trait_id)) {
+        ctx.addIssue({ code: "custom", message: `Unknown trait: ${t.trait_id}` });
+      }
     }
-    if (doc.checklist_30.some((t) => t.due_day > 30)) {
-      ctx.addIssue({ code: "custom", message: "checklist_30 tasks must be due within 30 days" });
+    if (doc.checklist_30 !== undefined) {
+      if (!checklist.some((t) => t.due_day === 1)) {
+        ctx.addIssue({ code: "custom", message: "checklist_30 needs a Day 1 task" });
+      }
+      if (checklist.some((t) => t.due_day > 30)) {
+        ctx.addIssue({ code: "custom", message: "checklist_30 tasks must be due within 30 days" });
+      }
     }
   });
 export type ProtocolDocument = z.infer<typeof protocolDocument>;

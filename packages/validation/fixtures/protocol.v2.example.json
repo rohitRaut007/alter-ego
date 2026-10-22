@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "generated_at": "2026-10-14T05:30:00Z",
   "identity": {
     "archetype": "The Deliberate Builder",
@@ -383,6 +383,7 @@
   ],
   "sprint_90": {
     "goal": "Move measurably toward: A product with 50 paying customers and a revenue number I can check.",
+    "milestones": [],
     "weeks": [
       {
         "index": 1,

@@ -16,7 +16,7 @@ from protocol.models import (
     ProtocolSection,
     ProtocolStatus,
 )
-from protocol.schema.v1 import SECTION_KEYS
+from protocol.schema.v2 import SECTION_KEYS
 
 pytestmark = pytest.mark.django_db
 
@@ -75,7 +75,7 @@ def test_full_flow_produces_valid_personalised_protocol(auth_client):
     assert detail.data["status"] == "ready"
     assert [s["key"] for s in detail.data["sections"]] == sorted(SECTION_KEYS)
     doc = detail.data["document"]
-    assert doc["schema_version"] == "1.0.0"
+    assert doc["schema_version"] == "2.0.0"
     # Personalised from the user's own words.
     assert "ships a product" in doc["identity"]["thesis"]
     assert doc["disclaimer"]

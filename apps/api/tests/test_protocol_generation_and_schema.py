@@ -17,12 +17,13 @@ from protocol.models import (
     ProtocolSection,
     ProtocolStatus,
 )
-from protocol.schema.v1 import (
+from protocol.schema.v2 import (
     DISCLAIMER,
     SECTION_KEYS,
     SECTION_MODELS,
     ProtocolDocument,
     find_banned_phrases,
+    upgrade_v1_document,
 )
 from protocol.services import MAX_ATTEMPTS, run_generation
 
@@ -60,7 +61,7 @@ def protocol() -> Protocol:
     for i, text in enumerate(["Become a builder.", "Dev tools.", "Skills.", "Mornings.",
                               "Abandon projects.", "Wasted potential.", "50 customers.", "2h a day."]):
         InterviewTurn.objects.create(interview=interview, idx=i, stage="s", question="q", answer=text)
-    return Protocol.objects.create(user=user, interview=interview, schema_version="1.0.0")
+    return Protocol.objects.create(user=user, interview=interview, schema_version="2.0.0")
 
 
 # --- generation -------------------------------------------------------------
@@ -126,7 +127,7 @@ def fake_document() -> dict:
 
     parts = {k: SECTION_BUILDERS[k](data["answers"], "Gen") for k in SECTION_KEYS}
     return {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "generated_at": "2026-10-14T05:30:00Z",
         **{k: parts[k] for k in ("identity", "character", "knowledge", "mission", "daily_os",
                                  "presence", "legacy")},
@@ -231,3 +232,78 @@ def test_key_rotation_decrypts_old_data(settings):
     settings.FIELD_ENCRYPTION_KEYS = [("k2", b"B" * 32), *old]
     assert crypto.encrypt("new").startswith("v1:k2:")
     assert crypto.decrypt(token) == "legacy value"
+
+
+# --- schema 2.0.0 ------------------------------------------------------------
+
+
+def envelope() -> dict:
+    return {"schema_version": "2.0.0", "generated_at": "2026-10-22T05:30:00Z",
+            "disclaimer": DISCLAIMER}
+
+
+def test_sections_are_optional_because_they_arrive_as_cards_unlock():
+    assert ProtocolDocument.model_validate(envelope()).identity is None
+    doc = fake_document()
+    partial = {**envelope(), "mission": doc["mission"], "sprint_90": doc["sprint_90"]}
+    ProtocolDocument.model_validate(partial)
+
+
+def test_a_1_0_0_document_upgrades_by_changing_only_its_version():
+    old = {**fake_document(), "schema_version": "1.0.0"}
+    with pytest.raises(ValidationError):
+        ProtocolDocument.model_validate(old)
+    upgraded = upgrade_v1_document(old)
+    assert upgraded["schema_version"] == "2.0.0"
+    assert upgraded["identity"] == old["identity"]
+    assert upgraded["checklist_30"] == old["checklist_30"]
+    assert upgrade_v1_document(upgraded) is upgraded
+    with pytest.raises(ValueError):
+        upgrade_v1_document({**old, "schema_version": "0.9.0"})
+
+
+def plan_sprint() -> dict:
+    task = {"id": "w1_t1", "title": "First step", "detail": "Ten minutes.", "layer": "mission",
+            "due_day": 1, "minutes": 10, "milestone_id": "m1", "fallback": "Five minutes.",
+            "fallback_minutes": 5, "if_then": {"if_cue": "I am tired",
+                                               "then_action": "I do the fallback"}}
+    return {
+        "goal": "Ship the first model.",
+        "milestones": [{"id": "m1", "title": "Deploy one model", "due_day": 200,
+                        "evidence": "An endpoint answers.", "lead_measures": ["Hours a week"]}],
+        "weeks": [
+            {"index": 1, "theme": "Start", "tasks": [task], "review_prompt": "What worked?"},
+            {"index": 2, "theme": "Later", "outcome": "A second model.",
+             "review_prompt": "What changed?"},
+        ],
+    }
+
+
+def test_plan_sprints_carry_milestones_and_an_empty_later_window():
+    sprint = SECTION_MODELS["sprint_90"].model_validate(plan_sprint())
+    assert sprint.weeks[1].tasks == [] and sprint.weeks[1].outcome == "A second model."
+    assert sprint.milestones[0].due_day == 200  # milestones may fall after the sprint ends
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda s: s["weeks"][0]["tasks"][0].update(milestone_id="nope"), "unknown milestones"),
+        (lambda s: s["weeks"][0]["tasks"][0].update(fallback_minutes=20), "less than or equal"),
+        (lambda s: s["weeks"][1].update(index=1), "unique"),
+        (lambda s: s["weeks"][0]["tasks"][0]["if_then"].pop("then_action"), "then_action"),
+        (lambda s: s.update(weeks=[]), "at least 1"),
+    ],
+)
+def test_plan_sprint_rules(mutate, message):
+    sprint = plan_sprint()
+    mutate(sprint)
+    with pytest.raises(ValidationError, match=message):
+        SECTION_MODELS["sprint_90"].model_validate(sprint)
+
+
+def test_tasks_cannot_name_a_trait_before_character_exists():
+    sprint = plan_sprint()
+    sprint["weeks"][0]["tasks"][0]["trait_id"] = "follow_through"
+    with pytest.raises(ValidationError, match="unknown traits"):
+        ProtocolDocument.model_validate({**envelope(), "sprint_90": sprint})

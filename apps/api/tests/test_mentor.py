@@ -223,14 +223,22 @@ def test_crisis_message_pauses_the_thread_and_nothing_is_stored(ready, caplog):
 # --- proactive nudges -------------------------------------------------------------------
 
 
+def _kinds(nudges) -> list[str]:
+    # The sprint starts on the real date, so day 5 can fall inside the Sunday-Wednesday ritual
+    # window. Ritual nudges have their own tests; these only look at re-engagement.
+    return [n["kind"] for n in nudges if n["kind"] != "ritual"]
+
+
 def test_reengagement_nudge_after_quiet_days_is_idempotent(ready, monkeypatch):
     client, _, sprint = ready
     pin(monkeypatch, at_day(sprint, 5))
     first = client.get("/api/v1/mentor/nudges").data
-    assert [n["kind"] for n in first] == ["reengagement"]
-    assert "5 days" in first[0]["body"] or "since your last" in first[0]["body"]
+    assert _kinds(first) == ["reengagement"]
+    nudge = next(n for n in first if n["kind"] == "reengagement")
+    assert "5 days" in nudge["body"] or "since your last" in nudge["body"]
     again = client.get("/api/v1/mentor/nudges").data
-    assert len(again) == 1 and MentorNudge.objects.count() == 1
+    assert len(again) == len(first)
+    assert MentorNudge.objects.filter(kind="reengagement").count() == 1
 
 
 def test_no_nudge_when_the_user_has_been_active(ready, monkeypatch):
@@ -238,7 +246,7 @@ def test_no_nudge_when_the_user_has_been_active(ready, monkeypatch):
     pin(monkeypatch, at_day(sprint, 5))
     task = Task.objects.get(source_id="c1")
     client.patch(f"/api/v1/tasks/{task.id}", {"done": True}, format="json")
-    assert client.get("/api/v1/mentor/nudges").data == []
+    assert _kinds(client.get("/api/v1/mentor/nudges").data) == []
 
 
 def test_nudges_respect_the_users_preference(ready, monkeypatch):

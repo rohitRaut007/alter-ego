@@ -1,0 +1,258 @@
+{
+  "schema_version": "2.0.0",
+  "generated_at": "2026-10-22T05:30:00Z",
+  "mission": {
+    "statement": "Work as an ML engineer on a platform or MLOps team.",
+    "strategy": "Reuse backend strengths: serve models first, then pipelines, then apply.",
+    "roadmap": [
+      {
+        "name": "Deploy one model behind an API you wrote",
+        "horizon_weeks": 6,
+        "outcomes": [
+          "A public endpoint returns predictions."
+        ]
+      },
+      {
+        "name": "Build a feature pipeline end to end",
+        "horizon_weeks": 18,
+        "outcomes": [
+          "One pipeline runs on a schedule and is monitored."
+        ]
+      },
+      {
+        "name": "Apply to five MLOps roles with a portfolio",
+        "horizon_weeks": 38,
+        "outcomes": [
+          "Five applications sent with links to shipped work."
+        ]
+      }
+    ],
+    "risks": [
+      "Losing interest after the first two weeks."
+    ],
+    "execution_system": "Two-week task windows, rebuilt from what actually got done."
+  },
+  "sprint_90": {
+    "goal": "Have one model deployed and a pipeline started.",
+    "milestones": [
+      {
+        "id": "m1",
+        "title": "Deploy one model behind an API you wrote",
+        "due_day": 37,
+        "evidence": "A public endpoint returns predictions.",
+        "lead_measures": [
+          "Hours on model serving each week"
+        ],
+        "quote": "works as an ML engineer"
+      },
+      {
+        "id": "m2",
+        "title": "Build a feature pipeline end to end",
+        "due_day": 120,
+        "evidence": "One pipeline runs on a schedule and is monitored.",
+        "lead_measures": [
+          "Pipeline runs completed",
+          "Hours on data work each week"
+        ]
+      },
+      {
+        "id": "m3",
+        "title": "Apply to five MLOps roles with a portfolio",
+        "due_day": 266,
+        "evidence": "Five applications sent with links to shipped work.",
+        "lead_measures": [
+          "Applications sent",
+          "Portfolio pieces shipped"
+        ]
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "theme": "Ship a first served model",
+        "outcome": "One model answers requests through an API you wrote.",
+        "tasks": [
+          {
+            "id": "w1_t1",
+            "title": "Model serving step 1",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 1,
+            "minutes": 10,
+            "priority": true,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 10
+          },
+          {
+            "id": "w1_t2",
+            "title": "Model serving step 2",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 2,
+            "minutes": 60,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15,
+            "if_then": {
+              "if_cue": "I skip two days in a row",
+              "then_action": "I do the 15-minute version before dinner"
+            }
+          },
+          {
+            "id": "w1_t3",
+            "title": "Model serving step 3",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 4,
+            "minutes": 60,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15
+          },
+          {
+            "id": "w1_t4",
+            "title": "Model serving step 4",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 6,
+            "minutes": 120,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15
+          }
+        ],
+        "review_prompt": "What did the model do that you did not expect?"
+      },
+      {
+        "index": 2,
+        "theme": "Make it repeatable",
+        "outcome": "The same model rebuilds and redeploys from one command.",
+        "tasks": [
+          {
+            "id": "w2_t5",
+            "title": "Model serving step 5",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 8,
+            "minutes": 60,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15
+          },
+          {
+            "id": "w2_t6",
+            "title": "Model serving step 6",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 10,
+            "minutes": 60,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15,
+            "if_then": {
+              "if_cue": "I skip two days in a row",
+              "then_action": "I do the 15-minute version before dinner"
+            }
+          },
+          {
+            "id": "w2_t7",
+            "title": "Model serving step 7",
+            "detail": "Work on the current milestone for the time shown.",
+            "layer": "mission",
+            "due_day": 13,
+            "minutes": 120,
+            "priority": false,
+            "milestone_id": "m1",
+            "fallback": "Do the first 15 minutes only.",
+            "fallback_minutes": 15
+          }
+        ],
+        "review_prompt": "Which step still needs you to remember something?"
+      },
+      {
+        "index": 3,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 4,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 5,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 6,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 7,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 8,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 9,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 10,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 11,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 12,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      },
+      {
+        "index": 13,
+        "theme": "Feature pipelines",
+        "outcome": "Features are computed the same way in training and serving.",
+        "tasks": [],
+        "review_prompt": "What did you learn that changes the next milestone?"
+      }
+    ]
+  },
+  "disclaimer": "This protocol is a planning framework built from your answers. It is not professional advice and it does not promise any particular result. You can change any part of it."
+}

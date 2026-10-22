@@ -1,4 +1,4 @@
-import example from "@alter-ego/validation/fixtures/protocol.v1.example.json";
+import example from "@alter-ego/validation/fixtures/protocol.v2.example.json";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -81,7 +81,7 @@ function readyProtocol(overrides: Record<string, unknown> = {}) {
   return {
     id: PROTOCOL_ID,
     status: "ready",
-    schema_version: "1.0.0",
+    schema_version: "2.0.0",
     failure_code: "",
     accuracy_rating: null,
     created_at: "2026-10-14T05:30:00Z",

@@ -1,6 +1,11 @@
-"""Protocol document schema v1.0.0. Mirrored in packages/validation (zod); see docs/PROTOCOL_SCHEMA.md.
+"""Protocol document schema v2.0.0. Mirrored in packages/validation (zod); see docs/PROTOCOL_SCHEMA.md.
 
 Additive changes bump the minor version; breaking changes bump the major and need a migration.
+
+2.0.0 (ADR 0010): sections are optional because they arrive as cards unlock; the sprint carries
+milestones and a rolling two-week task window (later weeks have an outcome and no tasks); tasks
+carry a 15-minute fallback, a milestone and an if-then plan. Every 1.0.0 document is a valid
+2.0.0 document, so `upgrade_v1_document` only changes the version.
 """
 
 import re
@@ -9,7 +14,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "2.0.0"
+V1_SCHEMA_VERSION = "1.0.0"
 
 DISCLAIMER = (
     "This protocol is a planning framework built from your answers. It is not professional "
@@ -28,6 +34,9 @@ Id = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]{0,31}$")]
 Clock = Annotated[str, StringConstraints(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")]
 
 LayerId = Literal["identity", "character", "knowledge", "mission", "daily_os", "presence", "legacy"]
+
+# A fallback is the bad-day version of a task: doing it keeps the streak (never miss twice).
+FALLBACK_MAX_MINUTES = 15
 
 
 class _Model(BaseModel):
@@ -139,6 +148,13 @@ class Legacy(_Model):
         return self
 
 
+class IfThen(_Model):
+    """An implementation intention: when the cue happens, do the action."""
+
+    if_cue: ShortText
+    then_action: ShortText
+
+
 class Task(_Model):
     id: Id
     title: ShortText
@@ -148,10 +164,17 @@ class Task(_Model):
     minutes: int = Field(ge=1, le=480)
     priority: bool = False
     trait_id: Id | None = None
+    milestone_id: Id | None = None
+    fallback: ShortText | None = None
+    fallback_minutes: int | None = Field(default=None, ge=1, le=FALLBACK_MAX_MINUTES)
+    if_then: IfThen | None = None
 
 
 class Checklist(_Model):
-    """Section wrapper: the document stores this as a bare `checklist_30` task list."""
+    """Deprecated in 2.0.0: the plan's two-week window replaces it. Kept so 1.0.0 documents load.
+
+    The document stores this section as a bare `checklist_30` task list.
+    """
 
     tasks: list[Task] = Field(min_length=5, max_length=60)
 
@@ -167,13 +190,44 @@ class Checklist(_Model):
 class Week(_Model):
     index: int = Field(ge=1, le=13)
     theme: ShortText
-    tasks: list[Task] = Field(min_length=1, max_length=12)
+    # What this week should produce. Weeks beyond the planned window carry an outcome and no tasks.
+    outcome: Text | None = None
+    tasks: list[Task] = Field(default_factory=list, max_length=20)
     review_prompt: Text
+
+
+class SprintMilestone(_Model):
+    """A checkpoint on the way to the goal. `due_day` counts from the sprint start and may fall
+    after the sprint ends, because milestones run to the goal's target date."""
+
+    id: Id
+    title: ShortText
+    due_day: int = Field(ge=1, le=730)
+    evidence: Text
+    lead_measures: list[ShortText] = Field(min_length=1, max_length=3)
+    quote: ShortText | None = None
 
 
 class Sprint(_Model):
     goal: Text
-    weeks: list[Week] = Field(min_length=12, max_length=13)
+    milestones: list[SprintMilestone] = Field(default_factory=list, max_length=6)
+    weeks: list[Week] = Field(min_length=1, max_length=13)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> "Sprint":
+        indexes = [w.index for w in self.weeks]
+        if len(set(indexes)) != len(indexes):
+            raise ValueError("Sprint week indexes must be unique")
+        milestone_ids = {m.id for m in self.milestones}
+        unknown = {
+            t.milestone_id
+            for w in self.weeks
+            for t in w.tasks
+            if t.milestone_id and t.milestone_id not in milestone_ids
+        }
+        if unknown:
+            raise ValueError(f"Tasks reference unknown milestones: {sorted(unknown)}")
+        return self
 
 
 SECTION_MODELS: dict[str, type[BaseModel]] = {
@@ -188,44 +242,62 @@ SECTION_MODELS: dict[str, type[BaseModel]] = {
     "sprint_90": Sprint,
 }
 SECTION_KEYS: tuple[str, ...] = tuple(SECTION_MODELS)
+# Sections a 2.0.0 protocol can contain. checklist_30 only appears in upgraded 1.0.0 documents.
+ACTIVE_SECTION_KEYS: tuple[str, ...] = tuple(k for k in SECTION_KEYS if k != "checklist_30")
 
 
 class ProtocolDocument(_Model):
-    schema_version: Literal["1.0.0"]
+    schema_version: Literal["2.0.0"]
     generated_at: datetime
-    identity: Identity
-    character: Character
-    knowledge: Knowledge
-    mission: Mission
-    daily_os: DailyOS
-    presence: Presence
-    legacy: Legacy
-    checklist_30: list[Task] = Field(min_length=5, max_length=60)
-    sprint_90: Sprint
+    identity: Identity | None = None
+    character: Character | None = None
+    knowledge: Knowledge | None = None
+    mission: Mission | None = None
+    daily_os: DailyOS | None = None
+    presence: Presence | None = None
+    legacy: Legacy | None = None
+    checklist_30: Annotated[list[Task], Field(min_length=5, max_length=60)] | None = None
+    sprint_90: Sprint | None = None
     disclaimer: Text
 
     @model_validator(mode="after")
     def _cross_checks(self) -> "ProtocolDocument":
-        ids: list[str] = [t.id for t in self.character.traits]
-        ids += [p.id for t in self.character.traits for p in t.practices]
-        ids += [r.id for r in self.knowledge.reading_list]
-        ids += [m.id for m in self.presence.micro_practices]
-        ids += [t.id for t in self.checklist_30]
-        ids += [t.id for w in self.sprint_90.weeks for t in w.tasks]
+        traits = self.character.traits if self.character else []
+        checklist = self.checklist_30 or []
+        sprint_tasks = [t for w in self.sprint_90.weeks for t in w.tasks] if self.sprint_90 else []
+
+        ids: list[str] = [t.id for t in traits]
+        ids += [p.id for t in traits for p in t.practices]
+        ids += [r.id for r in self.knowledge.reading_list] if self.knowledge else []
+        ids += [m.id for m in self.presence.micro_practices] if self.presence else []
+        ids += [t.id for t in checklist]
+        ids += [t.id for t in sprint_tasks]
         dupes = {i for i in ids if ids.count(i) > 1}
         if dupes:
             raise ValueError(f"Duplicate ids in protocol: {sorted(dupes)}")
 
-        trait_ids = {t.id for t in self.character.traits}
-        tasks = self.checklist_30 + [t for w in self.sprint_90.weeks for t in w.tasks]
-        unknown = {t.trait_id for t in tasks if t.trait_id and t.trait_id not in trait_ids}
+        # Trait links are checked once character exists; until then tasks may not name a trait.
+        trait_ids = {t.id for t in traits}
+        unknown = {t.trait_id for t in checklist + sprint_tasks
+                   if t.trait_id and t.trait_id not in trait_ids}
         if unknown:
             raise ValueError(f"Tasks reference unknown traits: {sorted(unknown)}")
-        if not any(t.due_day == 1 for t in self.checklist_30):
-            raise ValueError("checklist_30 needs a Day 1 task")
-        if any(t.due_day > 30 for t in self.checklist_30):
-            raise ValueError("checklist_30 tasks must be due within 30 days")
+        if self.checklist_30 is not None:
+            if not any(t.due_day == 1 for t in checklist):
+                raise ValueError("checklist_30 needs a Day 1 task")
+            if any(t.due_day > 30 for t in checklist):
+                raise ValueError("checklist_30 tasks must be due within 30 days")
         return self
+
+
+def upgrade_v1_document(doc: dict[str, Any]) -> dict[str, Any]:
+    """Return a 2.0.0 copy of a 1.0.0 document. Every 1.0.0 document is valid under 2.0.0."""
+    if doc.get("schema_version") == SCHEMA_VERSION:
+        return doc
+    if doc.get("schema_version") != V1_SCHEMA_VERSION:
+        raise ValueError(f"Cannot upgrade schema version {doc.get('schema_version')!r}")
+    upgraded = {**doc, "schema_version": SCHEMA_VERSION}
+    return ProtocolDocument.model_validate(upgraded).model_dump(mode="json", exclude_none=True)
 
 
 def find_banned_phrases(value: Any) -> list[str]:

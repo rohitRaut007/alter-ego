@@ -390,7 +390,7 @@ def test_export_contains_decrypted_user_data(ready):
     assert "attachment" in res["Content-Disposition"]
     data = json.loads(res.content)
     assert data["account"]["email"] == "ada@example.com"
-    assert data["protocols"][0]["document"]["schema_version"] == "1.0.0"
+    assert data["protocols"][0]["document"]["schema_version"] == "2.0.0"
     assert data["reflections"][0]["answers"]["compounded"] == "Shipped the fix."
     assert data["knowledge"]["notes"][0]["body"] == "Body text"
     assert len(data["interviews"][0]["answers"]) == 8

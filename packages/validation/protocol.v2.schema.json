@@ -174,6 +174,30 @@
       "title": "Identity",
       "type": "object"
     },
+    "IfThen": {
+      "additionalProperties": false,
+      "description": "An implementation intention: when the cue happens, do the action.",
+      "properties": {
+        "if_cue": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "If Cue",
+          "type": "string"
+        },
+        "then_action": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Then Action",
+          "type": "string"
+        }
+      },
+      "required": [
+        "if_cue",
+        "then_action"
+      ],
+      "title": "IfThen",
+      "type": "object"
+    },
     "Knowledge": {
       "additionalProperties": false,
       "properties": {
@@ -550,12 +574,20 @@
           "title": "Goal",
           "type": "string"
         },
+        "milestones": {
+          "items": {
+            "$ref": "#/$defs/SprintMilestone"
+          },
+          "maxItems": 6,
+          "title": "Milestones",
+          "type": "array"
+        },
         "weeks": {
           "items": {
             "$ref": "#/$defs/Week"
           },
           "maxItems": 13,
-          "minItems": 12,
+          "minItems": 1,
           "title": "Weeks",
           "type": "array"
         }
@@ -565,6 +597,69 @@
         "weeks"
       ],
       "title": "Sprint",
+      "type": "object"
+    },
+    "SprintMilestone": {
+      "additionalProperties": false,
+      "description": "A checkpoint on the way to the goal. `due_day` counts from the sprint start and may fall\nafter the sprint ends, because milestones run to the goal's target date.",
+      "properties": {
+        "due_day": {
+          "maximum": 730,
+          "minimum": 1,
+          "title": "Due Day",
+          "type": "integer"
+        },
+        "evidence": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "lead_measures": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Lead Measures",
+          "type": "array"
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "due_day",
+        "evidence",
+        "lead_measures"
+      ],
+      "title": "SprintMilestone",
       "type": "object"
     },
     "Task": {
@@ -582,10 +677,49 @@
           "title": "Due Day",
           "type": "integer"
         },
+        "fallback": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback"
+        },
+        "fallback_minutes": {
+          "anyOf": [
+            {
+              "maximum": 15,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Minutes"
+        },
         "id": {
           "pattern": "^[a-z][a-z0-9_]{0,31}$",
           "title": "Id",
           "type": "string"
+        },
+        "if_then": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IfThen"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "layer": {
           "enum": [
@@ -599,6 +733,19 @@
           ],
           "title": "Layer",
           "type": "string"
+        },
+        "milestone_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,31}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Milestone Id"
         },
         "minutes": {
           "maximum": 480,
@@ -711,6 +858,20 @@
           "title": "Index",
           "type": "integer"
         },
+        "outcome": {
+          "anyOf": [
+            {
+              "maxLength": 1200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
         "review_prompt": {
           "maxLength": 1200,
           "minLength": 1,
@@ -721,8 +882,7 @@
           "items": {
             "$ref": "#/$defs/Task"
           },
-          "maxItems": 12,
-          "minItems": 1,
+          "maxItems": 20,
           "title": "Tasks",
           "type": "array"
         },
@@ -736,7 +896,6 @@
       "required": [
         "index",
         "theme",
-        "tasks",
         "review_prompt"
       ],
       "title": "Week",
@@ -746,19 +905,43 @@
   "additionalProperties": false,
   "properties": {
     "character": {
-      "$ref": "#/$defs/Character"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Character"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "checklist_30": {
-      "items": {
-        "$ref": "#/$defs/Task"
-      },
-      "maxItems": 60,
-      "minItems": 5,
-      "title": "Checklist 30",
-      "type": "array"
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Task"
+          },
+          "maxItems": 60,
+          "minItems": 5,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Checklist 30"
     },
     "daily_os": {
-      "$ref": "#/$defs/DailyOS"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DailyOS"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "disclaimer": {
       "maxLength": 1200,
@@ -772,41 +955,80 @@
       "type": "string"
     },
     "identity": {
-      "$ref": "#/$defs/Identity"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Identity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "knowledge": {
-      "$ref": "#/$defs/Knowledge"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Knowledge"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "legacy": {
-      "$ref": "#/$defs/Legacy"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Legacy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "mission": {
-      "$ref": "#/$defs/Mission"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Mission"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "presence": {
-      "$ref": "#/$defs/Presence"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Presence"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "schema_version": {
-      "const": "1.0.0",
+      "const": "2.0.0",
       "title": "Schema Version",
       "type": "string"
     },
     "sprint_90": {
-      "$ref": "#/$defs/Sprint"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Sprint"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [
     "schema_version",
     "generated_at",
-    "identity",
-    "character",
-    "knowledge",
-    "mission",
-    "daily_os",
-    "presence",
-    "legacy",
-    "checklist_30",
-    "sprint_90",
     "disclaimer"
   ],
   "title": "ProtocolDocument",
