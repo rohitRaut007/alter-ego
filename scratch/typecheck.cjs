@@ -1,78 +1,50 @@
 const fs = require("fs");
 const path = require("path");
-const ts = require("C:/Users/HP/AppData/Local/Programs/Microsoft VS Code/2c33b50b16/resources/app/extensions/node_modules/typescript/lib/typescript.js");
+const ts = require("typescript");
 
 console.log("==================================================");
-console.log("       TypeScript Programmatic Typecheck         ");
+console.log("    TypeScript Full Semantic Compiler Check       ");
 console.log("==================================================\n");
 
-const filesToCheck = [
-  "packages/api-client/src/index.ts",
-  "src/lib/api-types.ts",
-  "src/components/ChoiceChips.tsx",
-  "src/components/StatePill.tsx",
-  "src/components/LockedLayer.tsx",
-  "src/components/RequireGoal.tsx",
-  "src/features/seed/SeedPage.tsx",
-  "src/features/cards/QuestionInput.tsx",
-  "src/features/cards/CardConversation.tsx",
-  "src/features/cards/CardSheet.tsx",
-  "src/features/cards/CardTile.tsx",
-  "src/features/cards/CardGrid.tsx",
-  "src/features/cards/useCards.ts",
-  "src/features/cards/TradeoffOptions.tsx",
-  "src/features/cards/FeasibilityVerdict.tsx",
-  "src/features/plan/PlanPage.tsx",
-];
+const rootDir = process.cwd();
+const configPath = ts.findConfigFile(rootDir, ts.sys.fileExists, "tsconfig.json");
 
-const options = {
-  noEmit: true,
-  target: ts.ScriptTarget.ES2022,
-  module: ts.ModuleKind.ESNext,
-  moduleResolution: ts.ModuleResolutionKind.Bundler,
-  jsx: ts.JsxEmit.ReactJSX,
-  skipLibCheck: true,
-  strict: true,
-  paths: {
-    "@/*": ["./src/*"],
-  },
-  baseUrl: "d:/alter-ego-os",
-};
-
-let syntaxErrors = 0;
-
-for (const relPath of filesToCheck) {
-  const fullPath = path.resolve("d:/alter-ego-os", relPath);
-  if (!fs.existsSync(fullPath)) {
-    console.error(`Missing file: ${relPath}`);
-    syntaxErrors++;
-    continue;
-  }
-  const code = fs.readFileSync(fullPath, "utf8");
-  const sourceFile = ts.createSourceFile(
-    fullPath,
-    code,
-    ts.ScriptTarget.ES2022,
-    true,
-    ts.ScriptKind.TSX
-  );
-
-  // Check for parse/syntax diagnostics
-  const diags = sourceFile.parseDiagnostics || [];
-  if (diags.length > 0) {
-    console.error(`✗ Syntax error in ${relPath}:`);
-    for (const d of diags) {
-      console.error(`  Line ${d.start}: ${d.messageText}`);
-    }
-    syntaxErrors++;
-  } else {
-    console.log(`✓ ${relPath}: Syntax & AST valid`);
-  }
+if (!configPath) {
+  console.error("Could not find tsconfig.json");
+  process.exit(1);
 }
 
-console.log("\n==================================================");
-console.log(`Typecheck AST Summary: ${filesToCheck.length - syntaxErrors} passed, ${syntaxErrors} errors.`);
-console.log("==================================================");
+const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+const parsedConfig = ts.parseJsonConfigFileContent(
+  configFile.config,
+  ts.sys,
+  path.dirname(configPath)
+);
 
-if (syntaxErrors > 0) process.exit(1);
+const program = ts.createProgram({
+  rootNames: parsedConfig.fileNames,
+  options: {
+    ...parsedConfig.options,
+    noEmit: true,
+  },
+});
 
+const diagnostics = ts.getPreEmitDiagnostics(program);
+
+if (diagnostics.length > 0) {
+  console.error(`Found ${diagnostics.length} type errors:\n`);
+  for (const diag of diagnostics) {
+    const message = ts.flattenDiagnosticMessageText(diag.messageText, "\n");
+    if (diag.file && diag.start !== undefined) {
+      const { line, character } = diag.file.getLineAndCharacterOfPosition(diag.start);
+      const relFile = path.relative(rootDir, diag.file.fileName);
+      console.error(`${relFile}(${line + 1},${character + 1}): error TS${diag.code}: ${message}`);
+    } else {
+      console.error(`Error: ${message}`);
+    }
+  }
+  process.exit(1);
+} else {
+  console.log(`[PASS] Full semantic typecheck succeeded with 0 errors across ${parsedConfig.fileNames.length} files.`);
+  process.exit(0);
+}

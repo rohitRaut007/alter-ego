@@ -70,12 +70,10 @@ class Command(BaseCommand):
             # Shift Goal if models exist
             try:
                 from apps.api.models import Goal, Sprint, Milestone, DailyTask
-            except ImportError:
-                # Fallback to dynamic model resolution if app structure differs
-                Goal = None
-                Sprint = None
-                Milestone = None
-                DailyTask = None
+            except ImportError as err:
+                raise CommandError(
+                    f"Cannot execute goals_shift_days: Django models are not configured in this codebase: {err}"
+                )
 
             if Goal is not None:
                 goals = Goal.objects.filter(user=user)

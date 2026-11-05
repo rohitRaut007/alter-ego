@@ -19,7 +19,9 @@ import { Route as LegacyRouteImport } from './routes/legacy'
 import { Route as MentorRouteImport } from './routes/mentor'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PersonalityRouteImport } from './routes/personality'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as ProtocolRouteImport } from './routes/protocol'
+import { Route as SeedRouteImport } from './routes/seed'
 import { Route as SettingsRouteImport } from './routes/settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -72,9 +74,19 @@ const PersonalityRoute = PersonalityRouteImport.update({
   path: '/personality',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtocolRoute = ProtocolRouteImport.update({
   id: '/protocol',
   path: '/protocol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeedRoute = SeedRouteImport.update({
+  id: '/seed',
+  path: '/seed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -94,7 +106,9 @@ export interface FileRoutesByFullPath {
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
   '/personality': typeof PersonalityRoute
+  '/plan': typeof PlanRoute
   '/protocol': typeof ProtocolRoute
+  '/seed': typeof SeedRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
@@ -108,7 +122,9 @@ export interface FileRoutesByTo {
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
   '/personality': typeof PersonalityRoute
+  '/plan': typeof PlanRoute
   '/protocol': typeof ProtocolRoute
+  '/seed': typeof SeedRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
@@ -123,7 +139,9 @@ export interface FileRoutesById {
   '/mentor': typeof MentorRoute
   '/onboarding': typeof OnboardingRoute
   '/personality': typeof PersonalityRoute
+  '/plan': typeof PlanRoute
   '/protocol': typeof ProtocolRoute
+  '/seed': typeof SeedRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
@@ -139,7 +157,9 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/onboarding'
     | '/personality'
+    | '/plan'
     | '/protocol'
+    | '/seed'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,7 +173,9 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/onboarding'
     | '/personality'
+    | '/plan'
     | '/protocol'
+    | '/seed'
     | '/settings'
   id:
     | '__root__'
@@ -167,7 +189,9 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/onboarding'
     | '/personality'
+    | '/plan'
     | '/protocol'
+    | '/seed'
     | '/settings'
   fileRoutesById: FileRoutesById
 }
@@ -182,7 +206,9 @@ export interface RootRouteChildren {
   MentorRoute: typeof MentorRoute
   OnboardingRoute: typeof OnboardingRoute
   PersonalityRoute: typeof PersonalityRoute
+  PlanRoute: typeof PlanRoute
   ProtocolRoute: typeof ProtocolRoute
+  SeedRoute: typeof SeedRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -258,11 +284,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PersonalityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/protocol': {
       id: '/protocol'
       path: '/protocol'
       fullPath: '/protocol'
       preLoaderRoute: typeof ProtocolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seed': {
+      id: '/seed'
+      path: '/seed'
+      fullPath: '/seed'
+      preLoaderRoute: typeof SeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -286,7 +326,9 @@ const rootRouteChildren: RootRouteChildren = {
   MentorRoute: MentorRoute,
   OnboardingRoute: OnboardingRoute,
   PersonalityRoute: PersonalityRoute,
+  PlanRoute: PlanRoute,
   ProtocolRoute: ProtocolRoute,
+  SeedRoute: SeedRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport

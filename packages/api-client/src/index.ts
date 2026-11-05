@@ -97,6 +97,7 @@ export interface SeedPayload {
   weekday_minutes: number;
   weekend_minutes: number;
   today_minutes: number;
+  today_availability?: string;
 }
 
 export interface SeedResult {
@@ -157,3 +158,100 @@ export interface TradeoffSelectionPayload {
   choices: string[];
 }
 
+export class ApiError extends Error {
+  status: number;
+  code?: string | undefined;
+
+  constructor(message: string, status: number, code?: string | undefined) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+/**
+ * Concrete API Client communicating with backend REST endpoints
+ */
+export class ApiClient {
+  private baseUrl: string;
+
+  constructor(baseUrl: string = "") {
+    this.baseUrl = baseUrl;
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
+
+    const response = await fetch(url, { ...options, headers });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new ApiError(data.error || response.statusText, response.status, data.code);
+    }
+
+    return data as T;
+  }
+
+  async seedGoal(payload: SeedPayload): Promise<SeedResult> {
+    return this.request<SeedResult>("/api/seed/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getCards(): Promise<Card[]> {
+    return this.request<Card[]>("/api/cards/", {
+      method: "GET",
+    });
+  }
+
+  async getCardStep(cardId: string, stepNumber: number): Promise<CardStep> {
+    return this.request<CardStep>(`/api/cards/${cardId}/steps/${stepNumber}/`, {
+      method: "GET",
+    });
+  }
+
+  async submitCardAnswer(
+    cardId: string,
+    stepNumber: number,
+    answer: string | string[],
+  ): Promise<{ accepted: boolean; safety_notice?: string; next_step?: number | null; completed?: boolean }> {
+    return this.request<{ accepted: boolean; safety_notice?: string; next_step?: number | null; completed?: boolean }>(
+      `/api/cards/${cardId}/steps/${stepNumber}/answer/`,
+      {
+        method: "POST",
+        body: JSON.stringify({ answer }),
+      },
+    );
+  }
+
+  async submitTradeoffs(cardId: string, choices: string[]): Promise<any> {
+    return this.request<any>(`/api/cards/${cardId}/tradeoffs/`, {
+      method: "POST",
+      body: JSON.stringify({ choices }),
+    });
+  }
+
+  async patchTaskFallback(taskId: string, did15Min: boolean): Promise<FallbackTask> {
+    return this.request<FallbackTask>(`/api/tasks/${taskId}/fallback/`, {
+      method: "PATCH",
+      body: JSON.stringify({ did_15_min_version: did15Min }),
+    });
+  }
+
+  async rebuildSprint(): Promise<{ sprint_id: string; needs_review: boolean; generated_tasks_count: number }> {
+    return this.request<{ sprint_id: string; needs_review: boolean; generated_tasks_count: number }>(
+      "/api/sprint/rebuild/",
+      {
+        method: "POST",
+      },
+    );
+  }
+}
+
+export const apiClient = new ApiClient();

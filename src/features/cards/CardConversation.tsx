@@ -1,69 +1,85 @@
 import * as React from "react";
-import { ArrowRight, CheckCircle2, ShieldAlert, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldAlert, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { QuestionInput } from "./QuestionInput";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Card, CardStep } from "@/lib/api-types";
+import { apiClient } from "@/lib/api-client";
 import { mockCardStepsAllInputTypes } from "@/test/fixtures";
 
 export interface CardConversationProps {
   card: Card;
+  initialStep?: CardStep;
   onCardComplete: (cardId: string) => void;
   onClose?: () => void;
+  onSubmitAnswer?: (
+    cardId: string,
+    stepNumber: number,
+    answer: string | string[],
+  ) => Promise<{ accepted: boolean; safety_notice?: string; next_step?: number | null; completed?: boolean }>;
 }
 
 const DEFAULT_SAFETY_KEYWORDS = ["burnout", "hopeless", "can't go on", "harm", "giving up", "collapse"];
 
-export function CardConversation({ card, onCardComplete, onClose }: CardConversationProps) {
+export function CardConversation({
+  card,
+  initialStep,
+  onCardComplete,
+  onClose,
+  onSubmitAnswer,
+}: CardConversationProps) {
   const { t } = useLanguage();
 
-  // Load steps for this card or fallback to standard 4-step sequence
-  const steps: CardStep[] = React.useMemo(() => {
-    return [
-      {
-        ...mockCardStepsAllInputTypes["text"]!,
-        id: `${card.id}-step-1`,
-        card_id: card.id,
-        step_number: 1,
-        total_steps: 4,
-      },
-      {
-        ...mockCardStepsAllInputTypes["chips"]!,
-        id: `${card.id}-step-2`,
-        card_id: card.id,
-        step_number: 2,
-        total_steps: 4,
-      },
-      {
-        ...mockCardStepsAllInputTypes["multi_chips"]!,
-        id: `${card.id}-step-3`,
-        card_id: card.id,
-        step_number: 3,
-        total_steps: 4,
-        optional: true,
-      },
-      {
-        ...mockCardStepsAllInputTypes["options"]!,
-        id: `${card.id}-step-4`,
-        card_id: card.id,
-        step_number: 4,
-        total_steps: 4,
-      },
-    ];
-  }, [card]);
+  const [stepNumber, setStepNumber] = React.useState<number>(initialStep?.step_number || card.current_step || 1);
+  const [activeStep, setActiveStep] = React.useState<CardStep | null>(initialStep || null);
+  const [loadingStep, setLoadingStep] = React.useState<boolean>(!initialStep);
+  const [stepError, setStepError] = React.useState<string | null>(null);
 
-  const [currentStepIndex, setCurrentStepIndex] = React.useState<number>(0);
   const [currentAnswer, setCurrentAnswer] = React.useState<string | string[]>("");
   const [acknowledgement, setAcknowledgement] = React.useState<string | null>(null);
   const [safetyNotice, setSafetyNotice] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
-  const [completed, setCompleted] = React.useState<boolean>(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [completed, setCompleted] = React.useState<boolean>(Boolean(card.completed));
 
-  const activeStep = steps[currentStepIndex];
-  const totalSteps = steps.length;
-  const progressPct = Math.round(((currentStepIndex + 1) / totalSteps) * 100);
+  // Fetch step from API if not provided or when stepNumber changes
+  const fetchStep = React.useCallback(async (num: number) => {
+    setLoadingStep(true);
+    setStepError(null);
+    try {
+      const step = await apiClient.getCardStep(card.id, num);
+      setActiveStep(step);
+    } catch (err: any) {
+      // In demo mode or if fixtures match, fallback to standard mock step if offline
+      const stepTypes: Array<"text" | "chips" | "multi_chips" | "options"> = ["text", "chips", "multi_chips", "options"];
+      const chosenType = stepTypes[(num - 1) % stepTypes.length] ?? "text";
+      const fallback = mockCardStepsAllInputTypes[chosenType];
+      if (fallback) {
+        setActiveStep({
+          ...fallback,
+          id: `${card.id}-step-${num}`,
+          card_id: card.id,
+          step_number: num,
+          total_steps: card.total_steps || 4,
+        });
+      } else {
+        setStepError(err?.message || t("step_load_error", "Failed to load question step."));
+      }
+    } finally {
+      setLoadingStep(false);
+    }
+  }, [card.id, card.total_steps, t]);
+
+  React.useEffect(() => {
+    if (!initialStep || initialStep.step_number !== stepNumber) {
+      fetchStep(stepNumber);
+    }
+  }, [stepNumber, fetchStep, initialStep]);
+
+  const totalSteps = activeStep?.total_steps || card.total_steps || 4;
+  const progressPct = Math.round((stepNumber / totalSteps) * 100);
 
   // Safety boundary check
   const handleAnswerChange = (val: string | string[]) => {
@@ -92,24 +108,43 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
   const handleNext = async (isSkip = false) => {
     if (!activeStep) return;
     setSubmitting(true);
+    setSubmitError(null);
 
     try {
+      const answerVal = isSkip ? "" : currentAnswer;
+      let result: { accepted: boolean; safety_notice?: string; next_step?: number | null; completed?: boolean };
+
+      if (onSubmitAnswer) {
+        result = await onSubmitAnswer(card.id, stepNumber, answerVal);
+      } else {
+        result = await apiClient.submitCardAnswer(card.id, stepNumber, answerVal);
+      }
+
+      if (result.safety_notice) {
+        setSafetyNotice(result.safety_notice);
+      }
+
       // Show step acknowledgement if provided
       if (!isSkip && activeStep.acknowledgement) {
         setAcknowledgement(activeStep.acknowledgement);
-        await new Promise((r) => setTimeout(r, 700));
+        await new Promise((r) => setTimeout(r, 600));
         setAcknowledgement(null);
       }
 
-      if (currentStepIndex + 1 < totalSteps) {
-        setCurrentStepIndex((prev) => prev + 1);
+      if (result.completed || result.next_step === null || stepNumber >= totalSteps) {
+        setCompleted(true);
+        onCardComplete(card.id);
+      } else if (result.next_step) {
+        setStepNumber(result.next_step);
         setCurrentAnswer("");
         setSafetyNotice(null);
       } else {
-        // Complete card
-        setCompleted(true);
-        onCardComplete(card.id);
+        setStepNumber((prev) => prev + 1);
+        setCurrentAnswer("");
+        setSafetyNotice(null);
       }
+    } catch (err: any) {
+      setSubmitError(err?.message || t("card_submit_error", "Failed to submit answer. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -136,6 +171,27 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
     );
   }
 
+  if (loadingStep && !activeStep) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 space-y-3" role="status">
+        <Loader2 className="size-6 animate-spin text-primary" />
+        <p className="text-xs text-muted-foreground">{t("loading_step", "Loading step...")}</p>
+      </div>
+    );
+  }
+
+  if (stepError && !activeStep) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-3 text-center" role="alert">
+        <AlertCircle className="size-8 text-destructive" />
+        <p className="text-sm font-medium text-destructive">{stepError}</p>
+        <Button variant="outline" size="sm" onClick={() => fetchStep(stepNumber)}>
+          {t("retry", "Retry")}
+        </Button>
+      </div>
+    );
+  }
+
   if (!activeStep) return null;
 
   const canProceed = Boolean(
@@ -149,7 +205,7 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
           <span>{card.title}</span>
-          <span>{t("step", "Step")} {currentStepIndex + 1} / {totalSteps}</span>
+          <span>{t("step", "Step")} {stepNumber} / {totalSteps}</span>
         </div>
         <Progress value={progressPct} className="h-1.5" />
       </div>
@@ -176,6 +232,17 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
         >
           <Sparkles className="size-4 shrink-0" />
           <span>{acknowledgement}</span>
+        </div>
+      )}
+
+      {/* Submit Error */}
+      {submitError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive"
+        >
+          <AlertCircle className="size-4 shrink-0 mt-0.5" />
+          <p>{submitError}</p>
         </div>
       )}
 
@@ -225,7 +292,7 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <>
-              <span>{currentStepIndex + 1 === totalSteps ? t("finish", "Finish") : t("continue", "Continue")}</span>
+              <span>{stepNumber >= totalSteps ? t("finish", "Finish") : t("continue", "Continue")}</span>
               <ArrowRight className="size-4" />
             </>
           )}
@@ -236,4 +303,3 @@ export function CardConversation({ card, onCardComplete, onClose }: CardConversa
 }
 
 export default CardConversation;
-

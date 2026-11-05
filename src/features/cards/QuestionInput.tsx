@@ -6,11 +6,11 @@ import type { CardStepInputType } from "@/lib/api-types";
 
 export interface QuestionInputProps {
   type: CardStepInputType;
-  options?: string[];
-  placeholder?: string;
+  options?: string[] | undefined;
+  placeholder?: string | undefined;
   value: string | string[];
   onChange: (val: string | string[]) => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 export function QuestionInput({

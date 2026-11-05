@@ -49,18 +49,16 @@ def onboard(client, scenario: str = "builder", path: str = "seed") -> Dict[str, 
 
     payload = scenarios.get(scenario, scenarios["builder"])
 
-    # Call seed API endpoint or perform direct database setup
-    if hasattr(client, "post"):
-        response = client.post("/api/seed/", payload, format="json")
-        if response.status_code in (200, 201, 204):
-            return response.json() if hasattr(response, "json") else response.data
+    if not hasattr(client, "post"):
+        raise ValueError("client must have a post() method to submit seed requests")
 
-    return {
-        "status": "success",
-        "scenario": scenario,
-        "path": path,
-        "payload": payload,
-    }
+    response = client.post("/api/seed/", payload, format="json")
+    status_code = getattr(response, "status_code", None)
+    if status_code not in (200, 201, 204):
+        content = getattr(response, "content", getattr(response, "data", str(response)))
+        raise AssertionError(f"Seed API request failed with status {status_code}: {content}")
+
+    return response.json() if hasattr(response, "json") else response.data
 
 
 def ready_protocol(client) -> Dict[str, Any]:

@@ -208,6 +208,7 @@ function Character() {
           </section>
         </div>
       </div>
+      )}
     </AppShell>
   );
 }

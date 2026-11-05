@@ -8,7 +8,7 @@ import type {
   FallbackTask,
   MilestonePlan,
   FeasibilityVerdict,
-} from "packages/api-client/src/index";
+} from "../../../../packages/api-client/src/index";
 
 /**
  * Fixture: User ME with has_goal
@@ -307,4 +307,57 @@ export const mockSprintWithMilestonesAndFallbacks: SprintPlan = {
     },
   ],
 };
+
+import React, { act } from "react";
+import { createRoot, Root } from "react-dom/client";
+import { LanguageProvider } from "@/lib/i18n";
+import { AppStateProvider } from "@/lib/app-state";
+
+export interface RenderResult {
+  container: HTMLDivElement;
+  unmount: () => void;
+  html: () => string;
+}
+
+export async function renderWithProviders(element: React.ReactElement): Promise<RenderResult> {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  let root: Root | null = null;
+
+  await act(async () => {
+    root = createRoot(container);
+    root.render(
+      <LanguageProvider>
+        <AppStateProvider>{element}</AppStateProvider>
+      </LanguageProvider>
+    );
+  });
+
+  return {
+    container,
+    unmount: () => {
+      if (root) {
+        act(() => {
+          root?.unmount();
+        });
+      }
+      container.remove();
+    },
+    html: () => container.innerHTML,
+  };
+}
+
+export function setInputValue(element: HTMLInputElement | HTMLTextAreaElement, value: string) {
+  const prototype = Object.getPrototypeOf(element);
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+  if (descriptor?.set) {
+    descriptor.set.call(element, value);
+  } else {
+    element.value = value;
+  }
+  element.dispatchEvent(new Event("input", { bubbles: true }));
+  element.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+
 

@@ -10,7 +10,13 @@ export interface RequireGoalProps {
 
 export function RequireGoal({ children, fallback }: RequireGoalProps) {
   const { user, loading, onboarded, onboardingAnswers } = useAppState();
-  const navigate = useNavigate();
+  let routerNavigate: any = null;
+  try {
+    routerNavigate = useNavigate();
+  } catch {
+    // Router context optional for testing
+  }
+  const navigate = routerNavigate || (({ to }: { to: string }) => {});
 
   // A user has a goal if onboarded is true or they have completed seed answers
   const hasGoal = React.useMemo(() => {
@@ -24,7 +30,11 @@ export function RequireGoal({ children, fallback }: RequireGoalProps) {
   React.useEffect(() => {
     if (loading) return;
     if (!hasGoal) {
-      void navigate({ to: "/seed" });
+      try {
+        void navigate({ to: "/seed" });
+      } catch {
+        // Router navigation optional outside router provider
+      }
     }
   }, [hasGoal, loading, navigate]);
 

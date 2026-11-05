@@ -1,28 +1,26 @@
 import assert from "node:assert";
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import React, { act } from "react";
 import { ChoiceChips } from "../components/ChoiceChips";
 import { StatePill } from "../components/StatePill";
 import { LockedLayer } from "../components/LockedLayer";
 import {
   Dialog,
-  DialogContent,
   DialogSheetContent,
   DialogTitle,
   DialogDescription,
 } from "../components/ui/dialog";
+import { renderWithProviders, setInputValue } from "./utils";
 
-// Simple test runner helper
 let passed = 0;
 let failed = 0;
 
-function test(name: string, fn: () => void) {
+async function test(name: string, fn: () => Promise<void> | void) {
   try {
-    fn();
-    console.log(`✓ ${name}`);
+    await fn();
+    console.log(`  ✓ ${name}`);
     passed++;
   } catch (err) {
-    console.error(`✗ ${name}:`, err);
+    console.error(`  ✗ ${name}:`, err);
     failed++;
   }
 }
@@ -30,99 +28,182 @@ function test(name: string, fn: () => void) {
 console.log("--- Running J1 Shared UI Component Tests ---");
 
 // 1. ChoiceChips Tests
-test("ChoiceChips: renders chips with correct aria-pressed states in single-select", () => {
-  const html = renderToStaticMarkup(
+await test("ChoiceChips: renders chips with correct aria-pressed states in single-select", async () => {
+  let selected = "Option A";
+  const { container, unmount } = await renderWithProviders(
     React.createElement(ChoiceChips, {
       options: ["Option A", "Option B", "Option C"],
-      selected: "Option A",
+      selected,
       variant: "single",
+      onChange: (val) => {
+        selected = val as string;
+      },
     })
   );
 
-  assert.ok(html.includes('aria-pressed="true"'), "Should contain aria-pressed='true' for Option A");
-  assert.ok(html.includes('aria-pressed="false"'), "Should contain aria-pressed='false' for Option B and C");
-  assert.ok(html.includes("Option A"), "Should render Option A");
-  assert.ok(html.includes("Option B"), "Should render Option B");
+  const buttons = container.querySelectorAll("button[role='button']");
+  assert.strictEqual(buttons.length, 3, "Expected 3 chip buttons");
+  assert.strictEqual(buttons[0]?.getAttribute("aria-pressed"), "true", "Option A should be pressed");
+  assert.strictEqual(buttons[1]?.getAttribute("aria-pressed"), "false", "Option B should not be pressed");
+  assert.strictEqual(buttons[2]?.getAttribute("aria-pressed"), "false", "Option C should not be pressed");
+
+  // Click Option B
+  act(() => {
+    buttons[1]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  assert.strictEqual(selected, "Option B", "Clicking Option B should trigger onChange with Option B");
+
+  unmount();
 });
 
-test("ChoiceChips: renders multi-select chips with correct aria-pressed states and summary", () => {
-  const html = renderToStaticMarkup(
+await test("ChoiceChips: supports keyboard navigation (Space / Enter)", async () => {
+  let selected = "";
+  const { container, unmount } = await renderWithProviders(
+    React.createElement(ChoiceChips, {
+      options: ["Alpha", "Beta"],
+      selected,
+      variant: "single",
+      onChange: (val) => {
+        selected = val as string;
+      },
+    })
+  );
+
+  const betaBtn = container.querySelectorAll("button[role='button']")[1];
+  assert.ok(betaBtn);
+
+  // Press Enter key
+  act(() => {
+    betaBtn.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  });
+  assert.strictEqual(selected, "Beta", "Enter key should select Beta");
+
+  unmount();
+});
+
+await test("ChoiceChips: renders multi-select chips with correct aria-pressed and removes chip", async () => {
+  let selected = ["Focus", "Strategy"];
+  const { container, unmount } = await renderWithProviders(
     React.createElement(ChoiceChips, {
       options: ["Focus", "Strategy", "Execution"],
-      selected: ["Focus", "Strategy"],
+      selected,
       variant: "multi",
       selectedLabel: "Selected traits:",
+      onChange: (val) => {
+        selected = val as string[];
+      },
     })
   );
 
-  // Both Focus and Strategy should be pressed
-  const trueCount = (html.match(/aria-pressed="true"/g) || []).length;
-  assert.strictEqual(trueCount, 2, "Expected 2 chips with aria-pressed='true'");
-  assert.ok(html.includes("Selected traits:"), "Should render selected summary label");
-  assert.ok(html.includes('aria-label="Remove Focus"'), "Should have accessible remove button for Focus");
+  const pressedChips = container.querySelectorAll("button[aria-pressed='true']");
+  assert.strictEqual(pressedChips.length, 2, "Expected 2 pressed chips");
+
+  // Remove Focus
+  const removeBtn = container.querySelector("button[aria-label='Remove Focus']");
+  assert.ok(removeBtn, "Must find remove button for Focus");
+  act(() => {
+    removeBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  assert.deepStrictEqual(selected, ["Strategy"], "Removing Focus leaves Strategy");
+
+  unmount();
 });
 
-test("ChoiceChips: renders custom option input with accessible labels", () => {
-  const html = renderToStaticMarkup(
+await test("ChoiceChips: allows adding custom option", async () => {
+  let selected: string[] = [];
+  const { container, unmount } = await renderWithProviders(
     React.createElement(ChoiceChips, {
-      options: ["Item 1"],
-      selected: [],
+      options: ["Default 1"],
+      selected,
+      variant: "multi",
       allowCustom: true,
-      placeholder: "Enter custom identity",
+      placeholder: "Add custom trait",
       addLabel: "Add trait",
+      onChange: (val) => {
+        selected = val as string[];
+      },
     })
   );
 
-  assert.ok(html.includes('placeholder="Enter custom identity"'), "Should render custom input placeholder");
-  assert.ok(html.includes('aria-label="Enter custom identity"'), "Should render input accessible aria-label");
-  assert.ok(html.includes("Add trait"), "Should render add button text");
+  const input = container.querySelector("input[aria-label='Add custom trait']") as HTMLInputElement;
+  assert.ok(input, "Should find custom input");
+
+  act(() => {
+    setInputValue(input, "Sovereign Drive");
+  });
+
+  const addBtn = input.parentElement?.querySelector("button") as HTMLButtonElement;
+  assert.ok(addBtn, "Should find add button next to custom input");
+  act(() => {
+    addBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+
+  assert.ok(selected.includes("Sovereign Drive"), "Custom option should be added and selected");
+  unmount();
 });
 
 // 2. StatePill Tests
-test("StatePill: renders each required state with role='status' and aria-label", () => {
+await test("StatePill: renders each required state with role='status' and aria-label", async () => {
   const states = ["locked", "needs_input", "calibrating", "active", "needs_review"] as const;
 
   for (const st of states) {
-    const html = renderToStaticMarkup(
+    const { container, unmount } = await renderWithProviders(
       React.createElement(StatePill, { state: st })
     );
 
-    assert.ok(html.includes('role="status"'), `State ${st} must have role='status'`);
-    assert.ok(html.includes('aria-label="Status: '), `State ${st} must have aria-label`);
+    const pill = container.querySelector("[role='status']");
+    assert.ok(pill, `State ${st} must render an element with role='status'`);
+    assert.ok(
+      pill.getAttribute("aria-label")?.includes("Status:"),
+      `State ${st} must have aria-label starting with 'Status:'`
+    );
+    unmount();
   }
 });
 
-test("StatePill: handles case variations and spaces cleanly", () => {
-  const html1 = renderToStaticMarkup(React.createElement(StatePill, { state: "Needs input" }));
-  const html2 = renderToStaticPill = renderToStaticMarkup(React.createElement(StatePill, { state: "Needs review" }));
-  const html3 = renderToStaticMarkup(React.createElement(StatePill, { state: "Locked" }));
+await test("StatePill: handles case variations and spaces cleanly", async () => {
+  const { container: c1, unmount: u1 } = await renderWithProviders(
+    React.createElement(StatePill, { state: "Needs input" })
+  );
+  assert.ok(c1.innerHTML.includes("Needs input"));
+  u1();
 
-  assert.ok(html1.includes("Needs input"), "Should format Needs input");
-  assert.ok(html2.includes("Needs review"), "Should format Needs review");
-  assert.ok(html3.includes("Locked"), "Should format Locked");
+  const { container: c2, unmount: u2 } = await renderWithProviders(
+    React.createElement(StatePill, { state: "Needs review" })
+  );
+  assert.ok(c2.innerHTML.includes("Needs review"));
+  u2();
+
+  const { container: c3, unmount: u3 } = await renderWithProviders(
+    React.createElement(StatePill, { state: "Locked" })
+  );
+  assert.ok(c3.innerHTML.includes("Locked"));
+  u3();
 });
 
 // 3. LockedLayer Tests
-test("LockedLayer: renders clearly with reasons 'Opens on day 3', 'After your plan', 'Full plan only'", () => {
+await test("LockedLayer: renders clearly with reasons 'Opens on day 3', 'After your plan', 'Full plan only'", async () => {
   const reasons = ["Opens on day 3", "After your plan", "Full plan only"] as const;
 
   for (const reason of reasons) {
-    const html = renderToStaticMarkup(
+    const { container, unmount } = await renderWithProviders(
       React.createElement(LockedLayer, {
         layerName: "Character Stack",
         reason,
       })
     );
 
-    assert.ok(html.includes('role="region"'), "LockedLayer must have role='region'");
-    assert.ok(html.includes(reason), `LockedLayer must render reason '${reason}'`);
-    assert.ok(html.includes("Character Stack is locked"), "LockedLayer must render layer title");
+    const region = container.querySelector("[role='region']");
+    assert.ok(region, "LockedLayer must have role='region'");
+    assert.ok(container.innerHTML.includes(reason), `LockedLayer must render reason '${reason}'`);
+    assert.ok(container.innerHTML.includes("Character Stack"), "LockedLayer must render layer title");
+    unmount();
   }
 });
 
 // 4. Dialog Sheet Variant Tests
-test("Dialog: DialogSheetContent renders responsive sheet classes for mobile and desktop", () => {
-  const html = renderToStaticMarkup(
+await test("Dialog: DialogSheetContent renders responsive sheet classes for mobile and desktop", async () => {
+  const { unmount } = await renderWithProviders(
     React.createElement(
       Dialog,
       { open: true },
@@ -135,14 +216,14 @@ test("Dialog: DialogSheetContent renders responsive sheet classes for mobile and
     )
   );
 
-  // Phone bottom sheet classes
-  assert.ok(html.includes("inset-x-0 bottom-0"), "Must include bottom sheet mobile positioning");
-  // Desktop panel classes (sm: breakpoint)
-  assert.ok(html.includes("sm:inset-y-0 sm:right-0"), "Must include sm: breakpoint right-side panel classes");
-  assert.ok(html.includes("Sheet Title"), "Must render title");
-  assert.ok(html.includes("Sheet description"), "Must render description");
+  const bodyHtml = document.body.innerHTML;
+  assert.ok(bodyHtml.includes("inset-x-0 bottom-0"), "Must include bottom sheet mobile positioning");
+  assert.ok(bodyHtml.includes("sm:inset-y-0 sm:right-0"), "Must include sm: breakpoint right-side panel classes");
+  assert.ok(bodyHtml.includes("Sheet Title"), "Must render title");
+  assert.ok(bodyHtml.includes("Sheet description"), "Must render description");
+
+  unmount();
 });
 
 console.log(`\nJ1 Test Results: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
-

@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api-client";
 import type { SprintPlan, FallbackTask, FallbackPatchPayload } from "@/lib/api-types";
 import { mockSprintWithMilestonesAndFallbacks } from "@/test/fixtures";
 
@@ -57,8 +58,10 @@ export function PlanPage({
     try {
       if (onFallbackToggle) {
         await onFallbackToggle(task.id, payload);
+      } else {
+        await apiClient.patchTaskFallback(task.id, nextVal);
       }
-      // Optimistic update
+      // Update state only after server confirmation
       setSprint((prev) => ({
         ...prev,
         tasks: prev.tasks.map((t) =>
@@ -78,6 +81,8 @@ export function PlanPage({
     try {
       if (onPlanNextTwoWeeks) {
         await onPlanNextTwoWeeks();
+      } else {
+        await apiClient.rebuildSprint();
       }
       setSprint((prev) => ({ ...prev, needs_review: false }));
     } catch (err: any) {

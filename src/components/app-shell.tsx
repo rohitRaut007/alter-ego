@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useRouter } from "@tanstack/react-router";
 import {
   BookOpen,
   Compass,
@@ -29,7 +29,25 @@ const rawNavItems = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  let pathname = "/";
+  let hasRouter = false;
+  try {
+    const router = useRouter();
+    hasRouter = Boolean(router);
+    pathname = useRouterState({ select: (s) => s.location.pathname });
+  } catch {
+    hasRouter = false;
+    if (typeof window !== "undefined" && window.location) {
+      pathname = window.location.pathname;
+    }
+  }
+
+  const SafeLink = ({ to, className, children: linkChildren }: { to: string; className?: string | undefined; children: ReactNode }) => {
+    if (hasRouter) {
+      return <Link to={to} className={className}>{linkChildren}</Link>;
+    }
+    return <a href={to} className={className}>{linkChildren}</a>;
+  };
   const { settings, tasks } = useAppState();
   const { t } = useLanguage();
   const remaining = tasks.filter((t) => !t.done).length;
@@ -47,19 +65,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen w-full bg-background">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar px-4 py-6 lg:flex">
         <div className="flex items-center justify-between px-2">
-          <Link to="/" className="flex items-center gap-2.5">
+          <SafeLink to="/" className="flex items-center gap-2.5">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Sparkles className="size-4" />
             </span>
             <span className="text-sm font-semibold tracking-tight">{t("app_name", "Alter Ego OS")}</span>
-          </Link>
+          </SafeLink>
         </div>
 
         <nav className="mt-6 flex flex-1 flex-col gap-1">
           {navItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             return (
-              <Link
+              <SafeLink
                 key={item.to}
                 to={item.to}
                 className={cn(
@@ -81,7 +99,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {remaining}
                   </span>
                 )}
-              </Link>
+              </SafeLink>
             );
           })}
         </nav>
@@ -101,12 +119,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/85 px-5 py-3.5 backdrop-blur-md lg:hidden">
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <SafeLink to="/dashboard" className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Sparkles className="size-3.5" />
             </span>
             <span className="text-sm font-semibold">{t("app_name", "Alter Ego OS")}</span>
-          </Link>
+          </SafeLink>
           <div className="flex items-center gap-2">
             <LanguageSelector />
           </div>
@@ -121,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {mobileItems.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + "/");
           return (
-            <Link
+            <SafeLink
               key={item.to}
               to={item.to}
               className={cn(
@@ -131,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <item.icon className="size-[18px]" />
               {item.label}
-            </Link>
+            </SafeLink>
           );
         })}
       </nav>

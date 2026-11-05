@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, Sparkles, Clock, Calendar, ShieldAlert, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, Sparkles, Clock, ShieldAlert, RefreshCw } from "lucide-react";
 import { format, addMonths, addYears, addDays, isAfter, isBefore, startOfToday } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,16 +8,27 @@ import { ChoiceChips } from "@/components/ChoiceChips";
 import { useAppState } from "@/lib/app-state";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { FirstTask } from "@/lib/api-types";
+import { apiClient } from "@/lib/api-client";
+import type { FirstTask, SeedPayload } from "@/lib/api-types";
 
 export type Situation = "know_goal" | "direction" | "change";
 
 const SAFETY_KEYWORDS = ["burnout", "hopeless", "can't go on", "harm", "giving up", "collapse", "starve"];
 
-export function SeedPage() {
-  const navigate = useNavigate();
+export interface SeedPageProps {
+  onNavigate?: (opts: { to: string }) => void;
+}
+
+export function SeedPage({ onNavigate }: SeedPageProps = {}) {
+  let routerNavigate: any = null;
+  try {
+    routerNavigate = useNavigate();
+  } catch {
+    // In unit test environment without RouterProvider
+  }
+  const navigate = onNavigate || routerNavigate || (({ to }: { to: string }) => {});
   const { t } = useLanguage();
-  const { completeOnboarding, setOnboardingAnswer, onboarded } = useAppState();
+  const { completeOnboarding, setOnboardingAnswer } = useAppState();
 
   const [step, setStep] = React.useState<number>(1);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
@@ -116,38 +127,43 @@ export function SeedPage() {
 
     const statement = situation === "know_goal" ? targetStatement.trim() : explorerTrueChoice || targetStatement.trim();
 
+    const payload: SeedPayload = {
+      situation,
+      target_statement: statement,
+      target_date: resolvedTargetDate,
+      weekday_minutes: weekdayMinutes,
+      weekend_minutes: weekendMinutes,
+      today_minutes: 10,
+      today_availability: todayAvailability,
+    };
+
     try {
-      // In accordance with API contract: HTTP 409 navigates straight to dashboard
-      // We save answers locally and trigger protocol/seed completion
+      // 1. Call real backend seed API
+      const seedResult = await apiClient.seedGoal(payload);
+
+      // 2. Synchronize local application state with server response
       setOnboardingAnswer("situation", situation);
       setOnboardingAnswer("target_statement", statement);
       setOnboardingAnswer("target_date", resolvedTargetDate);
       setOnboardingAnswer("weekday_minutes", String(weekdayMinutes));
       setOnboardingAnswer("weekend_minutes", String(weekendMinutes));
       setOnboardingAnswer("today_availability", todayAvailability);
+      setOnboardingAnswer("today_minutes", "10");
       setOnboardingAnswer("q1", statement);
       setOnboardingAnswer("q9", statement);
+      setOnboardingAnswer("goal", statement);
 
-      // Execute onboarding / seed persistence
       await completeOnboarding();
 
-      // Show first task
-      const generatedTask: FirstTask = {
-        id: "seed-first-task",
-        title: `10-minute kick-off: ${todayAvailability === "Right now" ? "Start now" : todayAvailability} — write your core operating principle`,
-        estimated_minutes: 10,
-        layer: "identity",
-        priority: true,
-        status: "pending",
-      };
-
-      setFirstTask(generatedTask);
+      // 3. Set the first task returned from the authoritative server response
+      setFirstTask(seedResult.first_task);
     } catch (err: any) {
-      if (err?.status === 409 || err?.message?.includes("409")) {
-        // Contract requirement: Handle HTTP 409 by navigating to dashboard
+      // Contract requirement: Handle HTTP 409 by navigating immediately to dashboard
+      if (err?.status === 409 || err?.message?.includes("409") || err?.code === "GOAL_CONFLICT") {
         void navigate({ to: "/dashboard" });
         return;
       }
+      // On genuine error: do not claim success, set retryable error
       setError(err?.message || t("seed_error_recoverable", "Unable to complete seed calibration. Please try again."));
     } finally {
       setSubmitting(false);
@@ -698,4 +714,3 @@ export function SeedPage() {
 }
 
 export default SeedPage;
-

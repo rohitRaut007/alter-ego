@@ -8,6 +8,14 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta, timezone
 
 
+try:
+    import django
+    DJANGO_AVAILABLE = True
+except ImportError:
+    DJANGO_AVAILABLE = False
+
+
+@unittest.skipUnless(DJANGO_AVAILABLE, "Django is not installed in this environment; J8 management command requires Django.")
 class TestGoalsShiftDaysCommand(unittest.TestCase):
 
     def test_refusal_when_debug_is_false(self):

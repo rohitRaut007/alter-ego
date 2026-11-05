@@ -194,6 +194,8 @@ function Legacy() {
           </div>
         </div>
       </section>
+        </>
+      )}
     </AppShell>
   );
 }

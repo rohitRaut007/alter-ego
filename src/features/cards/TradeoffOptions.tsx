@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { TradeoffOption, TradeoffSelectionPayload } from "@/lib/api-types";
+import { apiClient } from "@/lib/api-client";
 
 export interface TradeoffOptionsProps {
   options: TradeoffOption[];
-  onSelectOption: (payload: TradeoffSelectionPayload) => Promise<void>;
+  cardId?: string;
+  onSelectOption?: (payload: TradeoffSelectionPayload) => Promise<void>;
   selectedChoice?: string | null;
   disabled?: boolean;
 }
 
 export function TradeoffOptions({
   options,
+  cardId,
   onSelectOption,
   selectedChoice,
   disabled = false,
@@ -46,7 +49,11 @@ export function TradeoffOptions({
       const payload: TradeoffSelectionPayload = {
         choices: [opt.id],
       };
-      await onSelectOption(payload);
+      if (onSelectOption) {
+        await onSelectOption(payload);
+      } else if (cardId) {
+        await apiClient.submitTradeoffs(cardId, [opt.id]);
+      }
       setSuccessChoice(opt.id);
     } catch (err: any) {
       setError(err?.message || t("tradeoff_submit_error", "Failed to apply tradeoff. Please try again."));
