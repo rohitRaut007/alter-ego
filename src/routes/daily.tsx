@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { RequireGoal } from "@/components/RequireGoal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -29,7 +30,11 @@ export const Route = createFileRoute("/daily")({
       },
     ],
   }),
-  component: DailyOS,
+  component: () => (
+    <RequireGoal>
+      <DailyOS />
+    </RequireGoal>
+  ),
 });
 
 const blocks = [

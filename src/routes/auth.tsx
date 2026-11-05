@@ -101,7 +101,7 @@ function AuthPage() {
             }
             if (signInData.user) {
               toast.success(t("auth_welcome_back", "Welcome back!"));
-              void navigate({ to: "/onboarding" });
+              void navigate({ to: "/seed" });
               return;
             }
           }
@@ -115,7 +115,7 @@ function AuthPage() {
           if (data.session) {
             toast.success(t("auth_success", "Account created successfully!"));
             await new Promise((r) => setTimeout(r, 600));
-            void navigate({ to: "/onboarding" });
+            void navigate({ to: "/seed" });
           } else {
             // Attempt auto signInWithPassword
             const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
@@ -125,7 +125,7 @@ function AuthPage() {
 
             if (!signInErr && signInData.session) {
               toast.success(t("auth_success", "Account created & logged in!"));
-              void navigate({ to: "/onboarding" });
+              void navigate({ to: "/seed" });
             } else {
               toast.info(t("auth_email_confirm_sent", "Account created! If email confirmation is enabled, check your inbox to activate, or sign in below."));
               setIsSignUp(false);
@@ -142,7 +142,7 @@ function AuthPage() {
         toast.success(t("auth_welcome_back", "Welcome back to your system."));
 
         if (!signInData.user) {
-          void navigate({ to: "/onboarding" });
+          void navigate({ to: "/seed" });
           return;
         }
 
@@ -161,7 +161,7 @@ function AuthPage() {
             ] || email.split("@")[0]!,
             email,
           );
-          void navigate({ to: "/onboarding" });
+          void navigate({ to: "/seed" });
           return;
         }
 
@@ -170,7 +170,7 @@ function AuthPage() {
         } else if (profileData.onboarding_completed) {
           void navigate({ to: "/personality" });
         } else {
-          void navigate({ to: "/onboarding" });
+          void navigate({ to: "/seed" });
         }
       }
     } catch (err: unknown) {
@@ -310,7 +310,7 @@ function AuthPage() {
             className="w-full mt-1 border-dashed"
             onClick={() => {
               toast.success("Entering Instant Demo Mode...");
-              void navigate({ to: "/onboarding" });
+              void navigate({ to: "/seed" });
             }}
           >
             <Sparkles className="size-3.5 mr-1.5 text-accent" />

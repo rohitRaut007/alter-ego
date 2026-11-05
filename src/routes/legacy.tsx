@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { RequireGoal } from "@/components/RequireGoal";
+import { LockedLayer } from "@/components/LockedLayer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -29,13 +31,18 @@ export const Route = createFileRoute("/legacy")({
       },
     ],
   }),
-  component: Legacy,
+  component: () => (
+    <RequireGoal>
+      <Legacy />
+    </RequireGoal>
+  ),
 });
 
 const horizons: Milestone["horizon"][] = ["2-year", "5-year", "lifetime"];
 
 function Legacy() {
-  const { milestones, toggleMilestone, addMilestone } = useAppState();
+  const { milestones, toggleMilestone, addMilestone, settings } = useAppState();
+  const isLocked = (settings?.sprintDay || 1) < 14;
   const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [horizon, setHorizon] = useState<Milestone["horizon"]>("2-year");
@@ -57,7 +64,15 @@ function Legacy() {
         }
       />
 
-      <div className="card-surface rise-in mb-6 grid gap-6 p-6 sm:grid-cols-3">
+      {isLocked ? (
+        <LockedLayer
+          layerName={t("legacy_title", "Legacy Timeline")}
+          reason="After your plan"
+          className="mt-6"
+        />
+      ) : (
+        <>
+          <div className="card-surface rise-in mb-6 grid gap-6 p-6 sm:grid-cols-3">
         {[
           [t("legacy_milestones_mapped", "Milestones mapped"), milestones.length],
           [t("legacy_completed", "Completed"), complete],

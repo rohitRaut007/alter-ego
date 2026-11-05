@@ -88,7 +88,7 @@ function Landing() {
               <Link to="/dashboard">{t("nav_sign_in", "Sign in")}</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link to="/onboarding">{t("nav_build_alter_ego", "Build My Alter Ego")}</Link>
+              <Link to="/seed">{t("nav_build_alter_ego", "Build My Alter Ego")}</Link>
             </Button>
           </div>
         </div>
@@ -137,8 +137,8 @@ function Landing() {
                 {t("landing_seven_layers_card_title", "Seven layers, one coherent person.")}
               </p>
               <Button variant="secondary" asChild className="mt-6 w-fit">
-                <Link to="/onboarding">
-                  {t("home_start_interview", "Start the interview")} <ArrowRight className="size-4" />
+                <Link to="/seed">
+                  {t("home_calibrate_seed", "Calibrate your seed")} <ArrowRight className="size-4" />
                 </Link>
               </Button>
             </div>
@@ -237,7 +237,7 @@ function Landing() {
             {t("landing_cta_section_title", "The version of you that you keep postponing already has a protocol.")}
           </h2>
           <Button size="lg" asChild className="mt-9">
-            <Link to="/onboarding">
+            <Link to="/seed">
               {t("nav_build_alter_ego", "Build My Alter Ego")} <ArrowRight className="size-4" />
             </Link>
           </Button>

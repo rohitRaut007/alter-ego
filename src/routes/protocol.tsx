@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { RequireGoal } from "@/components/RequireGoal";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -41,7 +42,11 @@ export const Route = createFileRoute("/protocol")({
       },
     ],
   }),
-  component: Protocol,
+  component: () => (
+    <RequireGoal>
+      <Protocol />
+    </RequireGoal>
+  ),
 });
 
 const icons = [Fingerprint, UserCog, BookOpen, Target, Sun, Sparkles, Flag];

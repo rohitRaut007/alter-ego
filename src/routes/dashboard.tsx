@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { CardGrid } from "@/features/cards/CardGrid";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -360,6 +361,16 @@ function Dashboard() {
           </Link>
         ))}
       </div>
+
+      <section className="mt-5 space-y-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="label-eyebrow">{t("dashboard_cards_eyebrow", "Active Modules")}</p>
+            <h3 className="mt-1 text-xl">{t("dashboard_cards_title", "Transformation Cards")}</h3>
+          </div>
+        </div>
+        <CardGrid />
+      </section>
 
       <section className="mt-5">
         <div className="mb-4 flex items-end justify-between">

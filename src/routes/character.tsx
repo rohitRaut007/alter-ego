@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { RequireGoal } from "@/components/RequireGoal";
+import { LockedLayer } from "@/components/LockedLayer";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,11 +30,16 @@ export const Route = createFileRoute("/character")({
       },
     ],
   }),
-  component: Character,
+  component: () => (
+    <RequireGoal>
+      <Character />
+    </RequireGoal>
+  ),
 });
 
 function Character() {
-  const { habits, toggleHabit } = useAppState();
+  const { habits, toggleHabit, settings } = useAppState();
+  const isLocked = (settings?.sprintDay || 1) < 3;
   const { t } = useLanguage();
   const [reflection, setReflection] = useState("");
   const [savedPrompt, setSavedPrompt] = useState<string | null>(null);
@@ -52,7 +59,14 @@ function Character() {
         description={t("character_description", "Traits are not chosen, they are practised. These are the five you are compounding.")}
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      {isLocked ? (
+        <LockedLayer
+          layerName={t("character_title", "Character Stack")}
+          reason="Opens on day 3"
+          className="mt-6"
+        />
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-3">
         <section className="space-y-4 lg:col-span-2">
           {traits.map((tr) => (
             <div key={tr.id} className="card-surface p-6">
